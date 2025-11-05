@@ -1,4 +1,4 @@
-import { NewellTextRequest } from '@/types/newell';
+import { NewellTextRequest, NewellImageRequest, NewellImageResponse } from '@/types/newell';
 import { WeatherData } from '@/types/weather';
 
 const NEWELL_API_URL =
@@ -125,5 +125,108 @@ Please provide a short, practical recommendation (2-3 sentences) that mentions s
     };
 
     return iconMap[item.toLowerCase()] || 'shirt';
+  }
+
+  static async generateClothingImage(
+    clothingItem: string
+  ): Promise<string | null> {
+    try {
+      const prompt = this.buildClothingImagePrompt(clothingItem);
+
+      const requestBody: NewellImageRequest = {
+        project_id: PROJECT_ID,
+        prompt,
+        width: 512,
+        height: 512,
+        num_outputs: 1,
+      };
+
+      const response = await fetch(`${NEWELL_API_URL}/v1/generate/image`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!response.ok) {
+        if (response.status === 403) {
+          throw new Error('Project validation failed');
+        }
+        throw new Error(`API error: ${response.status}`);
+      }
+
+      const data: NewellImageResponse = await response.json();
+
+      if (data.success && data.images && data.images.length > 0) {
+        return data.images[0];
+      }
+
+      return null;
+    } catch (error) {
+      console.error(`Error generating image for ${clothingItem}:`, error);
+      return null;
+    }
+  }
+
+  static async generateClothingImages(
+    clothingItems: string[]
+  ): Promise<Map<string, string>> {
+    const imageMap = new Map<string, string>();
+
+    // Limit to first 6 items to avoid too many API calls
+    const itemsToGenerate = clothingItems.slice(0, 6);
+
+    // Generate images in parallel
+    const imagePromises = itemsToGenerate.map(async (item) => {
+      const imageUrl = await this.generateClothingImage(item);
+      return { item, imageUrl };
+    });
+
+    const results = await Promise.all(imagePromises);
+
+    // Build map of successful generations
+    for (const result of results) {
+      if (result.imageUrl) {
+        imageMap.set(result.item, result.imageUrl);
+      }
+    }
+
+    return imageMap;
+  }
+
+  private static buildClothingImagePrompt(clothingItem: string): string {
+    // Create optimized prompts for clothing item images
+    const itemName = clothingItem.toLowerCase();
+
+    // Map items to better prompts
+    const promptMap: { [key: string]: string } = {
+      jacket: "toddler's colorful jacket",
+      coat: "toddler's warm winter coat",
+      sweater: "toddler's cozy sweater",
+      shirt: "toddler's casual shirt",
+      't-shirt': "toddler's t-shirt",
+      hoodie: "toddler's comfortable hoodie",
+      pants: "toddler's pants",
+      shorts: "toddler's shorts",
+      jeans: "toddler's jeans",
+      leggings: "toddler's leggings",
+      dress: "toddler's dress",
+      hat: "toddler's winter hat",
+      boots: "toddler's boots",
+      shoes: "toddler's sneakers",
+      socks: "toddler's socks",
+      mittens: "toddler's mittens",
+      gloves: "toddler's gloves",
+      scarf: "toddler's scarf",
+      raincoat: "toddler's raincoat",
+      umbrella: "toddler's small umbrella",
+      vest: "toddler's vest",
+      cardigan: "toddler's cardigan",
+    };
+
+    const itemPrompt = promptMap[itemName] || `toddler's ${itemName}`;
+
+    return `${itemPrompt}, simple clean product photo style, centered on white background, bright and colorful, high quality`;
   }
 }

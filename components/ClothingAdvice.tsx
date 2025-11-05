@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react';
-import { StyleSheet, View, Text, Animated } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { StyleSheet, View, Text, Animated, Image, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NewellService } from '@/services/newellService';
 
@@ -13,41 +13,65 @@ interface ClothingAdviceProps {
   };
 }
 
-interface ClothingItemIcon {
-  name: keyof typeof Ionicons.glyphMap;
-  label: string;
-}
-
 export function ClothingAdvice({
   recommendation,
   tomorrowWeather,
 }: ClothingAdviceProps) {
+  const [clothingImages, setClothingImages] = useState<Map<string, string>>(
+    new Map()
+  );
+  const [imagesLoading, setImagesLoading] = useState(true);
+
   // Parse clothing items from recommendation
   const clothingItems = NewellService.parseClothingItems(recommendation);
 
-  // Get icon mappings
-  const clothingIcons: ClothingItemIcon[] = clothingItems.map((item) => ({
-    name: getEnhancedClothingIcon(item),
-    label: item.charAt(0).toUpperCase() + item.slice(1),
-  }));
+  // Generate images when component mounts
+  useEffect(() => {
+    generateImages();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recommendation]);
+
+  const generateImages = async () => {
+    try {
+      setImagesLoading(true);
+      const images = await NewellService.generateClothingImages(clothingItems);
+      setClothingImages(images);
+    } catch (error) {
+      console.error('Error generating clothing images:', error);
+    } finally {
+      setImagesLoading(false);
+    }
+  };
 
   // Create summary sentence about tomorrow's weather
   const weatherSummary = generateWeatherSummary(tomorrowWeather);
 
   return (
     <View style={styles.container}>
-      {/* Clothing Icons Grid */}
-      {clothingIcons.length > 0 && (
-        <View style={styles.iconsGrid}>
-          {clothingIcons.map((item, index) => (
-            <ClothingIcon
-              key={index}
-              icon={item.name}
-              label={item.label}
-              index={index}
-            />
-          ))}
+      {/* Loading State for Images */}
+      {imagesLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#fff" />
+          <Text style={styles.loadingText}>Generating outfit images...</Text>
         </View>
+      ) : (
+        <>
+          {/* AI-Generated Clothing Images */}
+          {clothingImages.size > 0 && (
+            <View style={styles.imagesGrid}>
+              {Array.from(clothingImages.entries()).map(
+                ([item, imageUrl], index) => (
+                  <ClothingImage
+                    key={item}
+                    imageUrl={imageUrl}
+                    label={item.charAt(0).toUpperCase() + item.slice(1)}
+                    index={index}
+                  />
+                )
+              )}
+            </View>
+          )}
+        </>
       )}
 
       {/* Weather Summary */}
@@ -82,13 +106,13 @@ export function ClothingAdvice({
   );
 }
 
-interface ClothingIconProps {
-  icon: keyof typeof Ionicons.glyphMap;
+interface ClothingImageProps {
+  imageUrl: string;
   label: string;
   index: number;
 }
 
-function ClothingIcon({ icon, label, index }: ClothingIconProps) {
+function ClothingImage({ imageUrl, label, index }: ClothingImageProps) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
 
@@ -97,15 +121,15 @@ function ClothingIcon({ icon, label, index }: ClothingIconProps) {
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 500,
-        delay: index * 100,
+        duration: 600,
+        delay: index * 150,
         useNativeDriver: true,
       }),
       Animated.spring(scaleAnim, {
         toValue: 1,
         tension: 50,
         friction: 7,
-        delay: index * 100,
+        delay: index * 150,
         useNativeDriver: true,
       }),
     ]).start();
@@ -114,61 +138,23 @@ function ClothingIcon({ icon, label, index }: ClothingIconProps) {
   return (
     <Animated.View
       style={[
-        styles.iconContainer,
+        styles.imageContainer,
         {
           opacity: fadeAnim,
           transform: [{ scale: scaleAnim }],
         },
       ]}
     >
-      <View style={styles.iconCircle}>
-        <Ionicons name={icon} size={36} color="#fff" />
+      <View style={styles.imageWrapper}>
+        <Image
+          source={{ uri: imageUrl }}
+          style={styles.clothingImage}
+          resizeMode="cover"
+        />
       </View>
-      <Text style={styles.iconLabel}>{label}</Text>
+      <Text style={styles.imageLabel}>{label}</Text>
     </Animated.View>
   );
-}
-
-function getEnhancedClothingIcon(
-  item: string
-): keyof typeof Ionicons.glyphMap {
-  const lowerItem = item.toLowerCase();
-
-  const iconMap: { [key: string]: keyof typeof Ionicons.glyphMap } = {
-    // Tops
-    jacket: 'shirt-outline',
-    coat: 'shirt-outline',
-    sweater: 'shirt-outline',
-    hoodie: 'shirt-outline',
-    shirt: 'shirt-outline',
-    't-shirt': 'shirt-outline',
-    vest: 'shirt-outline',
-    cardigan: 'shirt-outline',
-
-    // Bottoms
-    pants: 'fitness-outline',
-    jeans: 'fitness-outline',
-    shorts: 'fitness-outline',
-    leggings: 'fitness-outline',
-
-    // Accessories
-    hat: 'snow-outline',
-    boots: 'footsteps-outline',
-    shoes: 'footsteps-outline',
-    socks: 'footsteps-outline',
-    mittens: 'hand-left-outline',
-    gloves: 'hand-left-outline',
-    scarf: 'remove-outline',
-
-    // Rain gear
-    raincoat: 'umbrella-outline',
-    umbrella: 'umbrella-outline',
-
-    // Other
-    dress: 'person-outline',
-  };
-
-  return iconMap[lowerItem] || 'shirt-outline';
 }
 
 function generateWeatherSummary(weather: {
@@ -219,34 +205,58 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
   },
-  iconsGrid: {
+  loadingContainer: {
+    alignItems: 'center',
+    paddingVertical: 48,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: 'rgba(255,255,255,0.9)',
+    marginTop: 16,
+    fontWeight: '500',
+  },
+  imagesGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
     marginBottom: 32,
     maxWidth: '100%',
   },
-  iconContainer: {
+  imageContainer: {
     alignItems: 'center',
-    margin: 12,
-    minWidth: 80,
+    margin: 8,
+    minWidth: 100,
   },
-  iconCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+  imageWrapper: {
+    width: 100,
+    height: 100,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
   },
-  iconLabel: {
+  clothingImage: {
+    width: '100%',
+    height: '100%',
+  },
+  imageLabel: {
     fontSize: 13,
     color: '#fff',
     fontWeight: '600',
     textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   summaryContainer: {
     backgroundColor: 'rgba(255, 255, 255, 0.15)',

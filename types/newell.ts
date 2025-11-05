@@ -15,3 +15,24 @@ export interface NewellTextResponse {
   project_id?: string;
   timestamp?: string;
 }
+
+export interface NewellImageRequest {
+  project_id: string;
+  prompt: string;
+  model?: string;
+  width?: number;
+  height?: number;
+  num_outputs?: number;
+}
+
+export interface NewellImageResponse {
+  success: boolean;
+  images?: string[];
+  error?: string;
+  model_used: string;
+  project_id: string;
+  usage: {
+    images_generated?: number;
+  };
+  timestamp: string;
+}
