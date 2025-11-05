@@ -11,11 +11,13 @@ interface ClothingAdviceProps {
     description: string;
     precipitationChance: number;
   };
+  compact?: boolean;
 }
 
 export function ClothingAdvice({
   recommendation,
   tomorrowWeather,
+  compact = false,
 }: ClothingAdviceProps) {
   const [clothingImages, setClothingImages] = useState<Map<string, string>>(
     new Map()
@@ -207,50 +209,50 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     alignItems: 'center',
-    paddingVertical: 48,
+    paddingVertical: 24,
   },
   loadingText: {
-    fontSize: 16,
+    fontSize: 14,
     color: 'rgba(255,255,255,0.9)',
-    marginTop: 16,
+    marginTop: 12,
     fontWeight: '500',
   },
   imagesGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
-    marginBottom: 32,
+    marginBottom: 16,
     maxWidth: '100%',
   },
   imageContainer: {
     alignItems: 'center',
-    margin: 8,
-    minWidth: 100,
+    margin: 6,
+    minWidth: 80,
   },
   imageWrapper: {
-    width: 100,
-    height: 100,
-    borderRadius: 16,
+    width: 80,
+    height: 80,
+    borderRadius: 12,
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 6,
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 4,
+      height: 2,
     },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 5,
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 3,
   },
   clothingImage: {
     width: '100%',
     height: '100%',
   },
   imageLabel: {
-    fontSize: 13,
+    fontSize: 11,
     color: '#fff',
     fontWeight: '600',
     textAlign: 'center',
@@ -260,17 +262,17 @@ const styles = StyleSheet.create({
   },
   summaryContainer: {
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 20,
-    marginBottom: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 16,
+    marginBottom: 12,
   },
   summaryText: {
-    fontSize: 17,
+    fontSize: 15,
     color: '#fff',
     fontWeight: '500',
     textAlign: 'center',
-    lineHeight: 24,
+    lineHeight: 20,
   },
   tempRange: {
     flexDirection: 'row',
@@ -282,14 +284,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   tempText: {
-    fontSize: 16,
+    fontSize: 14,
     color: 'rgba(255,255,255,0.9)',
     fontWeight: '600',
     marginLeft: 4,
   },
   tempDivider: {
-    fontSize: 16,
+    fontSize: 14,
     color: 'rgba(255,255,255,0.5)',
-    marginHorizontal: 12,
+    marginHorizontal: 10,
   },
 });
