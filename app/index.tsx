@@ -1,110 +1,56 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   StyleSheet,
   View,
   Text,
-  FlatList,
-  TouchableOpacity,
   ActivityIndicator,
   StatusBar,
+  ScrollView,
 } from 'react-native';
-import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { AnimatedBackground, getWeatherCondition } from '@/components/AnimatedBackground';
-import { LocationPage } from '@/components/LocationPage';
-import { ClothingModal } from '@/components/ClothingModal';
+import { ClothingAdvice } from '@/components/ClothingAdvice';
 import { WeatherService } from '@/services/weatherService';
 import { NewellService } from '@/services/newellService';
-import { LocationStorage } from '@/services/locationStorage';
 import { WeatherData } from '@/types/weather';
-import { SavedLocation } from '@/types/location';
-
-interface LocationWeatherData {
-  location: SavedLocation;
-  weather: WeatherData;
-}
 
 export default function Index() {
-  const router = useRouter();
-  const flatListRef = useRef<FlatList>(null);
-
-  const [locationsWeather, setLocationsWeather] = useState<LocationWeatherData[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [aiRecommendation, setAiRecommendation] = useState<string | null>(null);
-  const [aiLoading, setAiLoading] = useState(false);
+  const [clothingAdvice, setClothingAdvice] = useState<string | null>(null);
+  const [adviceLoading, setAdviceLoading] = useState(false);
 
-  // Reload weather when screen comes into focus (including initial load)
+  // Load weather and AI advice on focus
   useFocusEffect(
     useCallback(() => {
-      loadAllLocationsWeather();
+      loadWeatherAndAdvice();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
   );
 
-  const loadAllLocationsWeather = async () => {
+  const loadWeatherAndAdvice = async () => {
     try {
       setLoading(true);
       setError(null);
 
       // Get current location
-      const currentLocation = await WeatherService.getCurrentLocation();
-      if (!currentLocation) {
+      const location = await WeatherService.getCurrentLocation();
+      if (!location) {
         throw new Error('Unable to get location. Please enable location services.');
       }
 
-      // Get location name for current position
-      const locationName = await WeatherService.getLocationName(
-        currentLocation.coords.latitude,
-        currentLocation.coords.longitude
+      // Fetch weather data
+      const weather = await WeatherService.getWeatherData(
+        location.coords.latitude,
+        location.coords.longitude
       );
 
-      // Create current location object
-      const currentLoc: SavedLocation = {
-        id: 'current',
-        name: locationName,
-        latitude: currentLocation.coords.latitude,
-        longitude: currentLocation.coords.longitude,
-        isCurrentLocation: true,
-      };
+      setWeatherData(weather);
 
-      // Fetch weather for current location
-      const currentWeather = await WeatherService.getWeatherData(
-        currentLocation.coords.latitude,
-        currentLocation.coords.longitude
-      );
-
-      // Get saved locations
-      const savedLocations = await LocationStorage.getSavedLocations();
-
-      // Fetch weather for all saved locations
-      const weatherPromises = savedLocations.map(async (loc) => {
-        try {
-          const weather = await WeatherService.getWeatherData(
-            loc.latitude,
-            loc.longitude
-          );
-          return { location: loc, weather };
-        } catch (err) {
-          console.error(`Error fetching weather for ${loc.name}:`, err);
-          return null;
-        }
-      });
-
-      const savedWeatherResults = await Promise.all(weatherPromises);
-      const validSavedWeather = savedWeatherResults.filter(
-        (result): result is LocationWeatherData => result !== null
-      );
-
-      // Combine current location with saved locations
-      const allLocationsWeather: LocationWeatherData[] = [
-        { location: currentLoc, weather: currentWeather },
-        ...validSavedWeather,
-      ];
-
-      setLocationsWeather(allLocationsWeather);
+      // Auto-load AI clothing advice
+      loadClothingAdvice(weather);
     } catch (err) {
       console.error('Error loading weather:', err);
       setError(err instanceof Error ? err.message : 'Failed to load weather data');
@@ -113,46 +59,22 @@ export default function Index() {
     }
   };
 
-  const handleAskForClothing = async () => {
-    if (locationsWeather.length === 0) return;
-
-    const currentLocationWeather = locationsWeather[currentIndex];
-    if (!currentLocationWeather) return;
-
-    setModalVisible(true);
-    setAiLoading(true);
-    setAiRecommendation(null);
-
+  const loadClothingAdvice = async (weather: WeatherData) => {
     try {
+      setAdviceLoading(true);
       const recommendation = await NewellService.generateClothingRecommendation(
-        currentLocationWeather.weather
+        weather
       );
-      setAiRecommendation(recommendation);
+      setClothingAdvice(recommendation);
     } catch (err) {
       console.error('Error getting AI recommendation:', err);
-      setAiRecommendation(null);
+      setClothingAdvice(
+        'A comfortable outfit with layers is always a good choice!'
+      );
     } finally {
-      setAiLoading(false);
+      setAdviceLoading(false);
     }
   };
-
-  const handleCloseModal = () => {
-    setModalVisible(false);
-  };
-
-  const handleManageLocations = () => {
-    router.push('/manage-locations');
-  };
-
-  const onViewableItemsChanged = useRef(({ viewableItems }: any) => {
-    if (viewableItems.length > 0) {
-      setCurrentIndex(viewableItems[0].index || 0);
-    }
-  }).current;
-
-  const viewabilityConfig = useRef({
-    itemVisiblePercentThreshold: 50,
-  }).current;
 
   // Determine if it's night time
   const currentHour = new Date().getHours();
@@ -168,7 +90,7 @@ export default function Index() {
     );
   }
 
-  if (error || locationsWeather.length === 0) {
+  if (error || !weatherData) {
     return (
       <View style={styles.errorContainer}>
         <AnimatedBackground condition="cloudy" />
@@ -177,91 +99,90 @@ export default function Index() {
         <Text style={styles.errorMessage}>
           {error || 'Please check your internet connection and location permissions.'}
         </Text>
-        <TouchableOpacity style={styles.retryButton} onPress={loadAllLocationsWeather}>
-          <Text style={styles.retryButtonText}>Try Again</Text>
-        </TouchableOpacity>
       </View>
     );
   }
 
-  const currentLocationWeather = locationsWeather[currentIndex];
-  const weatherCondition = currentLocationWeather
-    ? getWeatherCondition(currentLocationWeather.weather.current.weatherCode, isNight)
-    : 'clear-day';
+  const weatherCondition = getWeatherCondition(
+    weatherData.current.weatherCode,
+    isNight
+  );
+
+  const weatherIcon = WeatherService.getWeatherIcon(
+    weatherData.current.weatherCode,
+    isNight
+  ) as keyof typeof Ionicons.glyphMap;
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
       <AnimatedBackground condition={weatherCondition} />
 
-      {/* Location carousel */}
-      <FlatList
-        ref={flatListRef}
-        data={locationsWeather}
-        renderItem={({ item }) => (
-          <LocationPage weatherData={item.weather} isNight={isNight} />
-        )}
-        keyExtractor={(item) => item.location.id}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        onViewableItemsChanged={onViewableItemsChanged}
-        viewabilityConfig={viewabilityConfig}
-        scrollEventThrottle={16}
-      />
-
-      {/* Page indicators */}
-      {locationsWeather.length > 1 && (
-        <View style={styles.pageIndicators}>
-          {locationsWeather.map((_, index) => (
-            <View
-              key={index}
-              style={[
-                styles.pageIndicator,
-                index === currentIndex && styles.pageIndicatorActive,
-              ]}
-            />
-          ))}
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Location */}
+        <View style={styles.locationContainer}>
+          <Ionicons name="location" size={18} color="rgba(255,255,255,0.9)" />
+          <Text style={styles.locationText}>{weatherData.location}</Text>
         </View>
-      )}
 
-      {/* Floating action buttons */}
-      <View style={styles.floatingButtons}>
-        {/* AI Clothing Button */}
-        <TouchableOpacity
-          style={styles.floatingButton}
-          onPress={handleAskForClothing}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="sparkles" size={24} color="#fff" />
-        </TouchableOpacity>
+        {/* Today's Weather - Top Section */}
+        <View style={styles.todaySection}>
+          <Ionicons name={weatherIcon} size={120} color="#fff" />
+          <Text style={styles.currentTemp}>{weatherData.current.temp}°</Text>
+          <Text style={styles.currentDescription}>
+            {weatherData.current.description}
+          </Text>
 
-        {/* Refresh Button */}
-        <TouchableOpacity
-          style={styles.floatingButton}
-          onPress={loadAllLocationsWeather}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="refresh" size={24} color="#fff" />
-        </TouchableOpacity>
+          {/* Inline Today's Stats */}
+          <View style={styles.todayStats}>
+            <View style={styles.statItem}>
+              <Ionicons name="arrow-up" size={18} color="#fff" />
+              <Text style={styles.statValue}>{weatherData.today.high}°</Text>
+            </View>
 
-        {/* Manage Locations Button */}
-        <TouchableOpacity
-          style={[styles.floatingButton, styles.addLocationButton]}
-          onPress={handleManageLocations}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="add" size={28} color="#fff" />
-        </TouchableOpacity>
-      </View>
+            <View style={styles.statDivider} />
 
-      {/* AI Clothing Modal */}
-      <ClothingModal
-        visible={modalVisible}
-        onClose={handleCloseModal}
-        recommendation={aiRecommendation}
-        loading={aiLoading}
-      />
+            <View style={styles.statItem}>
+              <Ionicons name="arrow-down" size={18} color="#fff" />
+              <Text style={styles.statValue}>{weatherData.today.low}°</Text>
+            </View>
+
+            <View style={styles.statDivider} />
+
+            <View style={styles.statItem}>
+              <Ionicons name="flag" size={18} color="#fff" />
+              <Text style={styles.statValue}>
+                {weatherData.current.windSpeed} mph
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Tomorrow's Clothing Advice - Bottom Section */}
+        <View style={styles.adviceSection}>
+          <Text style={styles.adviceTitle}>Tomorrow&apos;s Outfit</Text>
+
+          {adviceLoading ? (
+            <View style={styles.adviceLoading}>
+              <ActivityIndicator size="large" color="#fff" />
+              <Text style={styles.adviceLoadingText}>
+                Getting clothing recommendations...
+              </Text>
+            </View>
+          ) : clothingAdvice ? (
+            <ClothingAdvice
+              recommendation={clothingAdvice}
+              tomorrowWeather={weatherData.tomorrow}
+            />
+          ) : null}
+        </View>
+
+        <View style={styles.spacer} />
+      </ScrollView>
     </View>
   );
 }
@@ -301,62 +222,89 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     opacity: 0.9,
   },
-  retryButton: {
-    marginTop: 24,
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 20,
+    paddingTop: 60,
+  },
+  locationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 32,
+  },
+  locationText: {
+    fontSize: 16,
+    color: 'rgba(255,255,255,0.9)',
+    fontWeight: '600',
+    marginLeft: 6,
+  },
+  todaySection: {
+    alignItems: 'center',
+    marginBottom: 60,
+  },
+  currentTemp: {
+    fontSize: 96,
+    color: '#fff',
+    fontWeight: '200',
+    marginTop: 8,
+    marginBottom: 4,
+    letterSpacing: -2,
+  },
+  currentDescription: {
+    fontSize: 26,
+    color: '#fff',
+    fontWeight: '500',
+    marginBottom: 24,
+  },
+  todayStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    paddingVertical: 16,
     paddingHorizontal: 32,
-    paddingVertical: 12,
     borderRadius: 24,
   },
-  retryButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#fff',
-  },
-  pageIndicators: {
-    position: 'absolute',
-    bottom: 120,
-    left: 0,
-    right: 0,
+  statItem: {
     flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 12,
   },
-  pageIndicator: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.4)',
-    marginHorizontal: 4,
+  statValue: {
+    fontSize: 18,
+    color: '#fff',
+    fontWeight: '600',
+    marginLeft: 6,
   },
-  pageIndicatorActive: {
-    width: 24,
-    backgroundColor: '#fff',
+  statDivider: {
+    width: 1,
+    height: 24,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
   },
-  floatingButtons: {
-    position: 'absolute',
-    bottom: 40,
-    right: 20,
-    alignItems: 'flex-end',
+  adviceSection: {
+    marginTop: 20,
   },
-  floatingButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: 'rgba(74, 144, 226, 0.9)',
-    justifyContent: 'center',
+  adviceTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#fff',
+    marginBottom: 24,
+    textAlign: 'center',
+    letterSpacing: 0.5,
+  },
+  adviceLoading: {
     alignItems: 'center',
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    paddingVertical: 40,
   },
-  addLocationButton: {
-    backgroundColor: 'rgba(76, 175, 80, 0.9)',
+  adviceLoadingText: {
+    fontSize: 16,
+    color: 'rgba(255,255,255,0.9)',
+    marginTop: 16,
+  },
+  spacer: {
+    height: 40,
   },
 });
