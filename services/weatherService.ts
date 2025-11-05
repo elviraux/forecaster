@@ -1,5 +1,6 @@
 import * as Location from 'expo-location';
 import { WeatherData } from '@/types/weather';
+import { CitySearchResult } from '@/types/location';
 
 // Using Open-Meteo API (free, no API key required)
 const WEATHER_API_URL = 'https://api.open-meteo.com/v1/forecast';
@@ -70,13 +71,14 @@ export class WeatherService {
         longitude: longitude.toString(),
         current:
           'temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m',
+        hourly: 'temperature_2m,weather_code',
         daily:
           'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max',
         temperature_unit: 'fahrenheit',
         wind_speed_unit: 'mph',
         precipitation_unit: 'inch',
         timezone: 'auto',
-        forecast_days: '2',
+        forecast_days: '7',
       });
 
       const response = await fetch(`${WEATHER_API_URL}?${params}`);
@@ -89,6 +91,41 @@ export class WeatherService {
 
       // Get location name
       const locationName = await this.getLocationName(latitude, longitude);
+
+      // Parse hourly forecast (next 24 hours)
+      const currentHour = new Date().getHours();
+      const hourly = data.hourly.time
+        .slice(currentHour, currentHour + 24)
+        .map((time: string, index: number) => ({
+          time,
+          temp: Math.round(data.hourly.temperature_2m[currentHour + index]),
+          weatherCode: data.hourly.weather_code[currentHour + index],
+        }));
+
+      // Parse daily forecast (7 days)
+      const daily = data.daily.time.map((date: string, index: number) => {
+        const dateObj = new Date(date);
+        const dayNames = [
+          'Sunday',
+          'Monday',
+          'Tuesday',
+          'Wednesday',
+          'Thursday',
+          'Friday',
+          'Saturday',
+        ];
+        const dayName = index === 0 ? 'Today' : dayNames[dateObj.getDay()];
+
+        return {
+          date,
+          dayName,
+          high: Math.round(data.daily.temperature_2m_max[index]),
+          low: Math.round(data.daily.temperature_2m_min[index]),
+          weatherCode: data.daily.weather_code[index],
+          precipitationChance:
+            data.daily.precipitation_probability_max[index] || 0,
+        };
+      });
 
       // Parse weather data
       const weatherData: WeatherData = {
@@ -113,6 +150,8 @@ export class WeatherService {
           precipitationChance: data.daily.precipitation_probability_max[1] || 0,
           windSpeed: Math.round(data.daily.wind_speed_10m_max[1]),
         },
+        hourly,
+        daily,
       };
 
       return weatherData;
@@ -172,5 +211,45 @@ export class WeatherService {
       return 'thunderstorm';
     }
     return 'partly-sunny';
+  }
+
+  static async searchCities(query: string): Promise<CitySearchResult[]> {
+    try {
+      if (!query || query.trim().length < 2) {
+        return [];
+      }
+
+      const params = new URLSearchParams({
+        name: query.trim(),
+        count: '10',
+        language: 'en',
+        format: 'json',
+      });
+
+      const response = await fetch(`${GEOCODING_API_URL}?${params}`);
+
+      if (!response.ok) {
+        throw new Error('Failed to search cities');
+      }
+
+      const data = await response.json();
+
+      if (!data.results || data.results.length === 0) {
+        return [];
+      }
+
+      return data.results.map((result: any) => ({
+        id: result.id,
+        name: result.name,
+        latitude: result.latitude,
+        longitude: result.longitude,
+        country: result.country,
+        admin1: result.admin1,
+        population: result.population,
+      }));
+    } catch (error) {
+      console.error('Error searching cities:', error);
+      return [];
+    }
   }
 }

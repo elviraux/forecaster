@@ -1,3 +1,18 @@
+export interface HourlyForecast {
+  time: string; // ISO timestamp
+  temp: number;
+  weatherCode: number;
+}
+
+export interface DailyForecast {
+  date: string; // ISO date
+  dayName: string;
+  high: number;
+  low: number;
+  weatherCode: number;
+  precipitationChance: number;
+}
+
 export interface WeatherData {
   location: string;
   current: {
@@ -20,6 +35,8 @@ export interface WeatherData {
     precipitationChance: number;
     windSpeed: number;
   };
+  hourly: HourlyForecast[];
+  daily: DailyForecast[];
 }
 
 export type WeatherCondition =
