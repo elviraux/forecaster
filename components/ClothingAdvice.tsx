@@ -1,7 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { StyleSheet, View, Text, Animated, Image, ActivityIndicator } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { StyleSheet, View, Text, Animated, Image, ImageSourcePropType } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NewellService } from '@/services/newellService';
+import { ClothingImageLibrary } from '@/services/clothingImageLibrary';
 
 interface ClothingAdviceProps {
   recommendation: string;
@@ -19,61 +20,29 @@ export function ClothingAdvice({
   tomorrowWeather,
   compact = false,
 }: ClothingAdviceProps) {
-  const [clothingImages, setClothingImages] = useState<Map<string, string>>(
-    new Map()
-  );
-  const [imagesLoading, setImagesLoading] = useState(true);
-
   // Parse clothing items from recommendation
   const clothingItems = NewellService.parseClothingItems(recommendation);
 
-  // Generate images when component mounts
-  useEffect(() => {
-    generateImages();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [recommendation]);
-
-  const generateImages = async () => {
-    try {
-      setImagesLoading(true);
-      const images = await NewellService.generateClothingImages(clothingItems);
-      setClothingImages(images);
-    } catch (error) {
-      console.error('Error generating clothing images:', error);
-    } finally {
-      setImagesLoading(false);
-    }
-  };
+  // Get local images instantly - no async loading needed!
+  const clothingImages = ClothingImageLibrary.getImages(clothingItems);
 
   // Create summary sentence about tomorrow's weather
   const weatherSummary = generateWeatherSummary(tomorrowWeather);
 
   return (
     <View style={styles.container}>
-      {/* Loading State for Images */}
-      {imagesLoading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#fff" />
-          <Text style={styles.loadingText}>Generating outfit images...</Text>
+      {/* AI-Generated Clothing Images - Now with Real Illustrations! */}
+      {clothingImages.size > 0 && (
+        <View style={styles.imagesGrid}>
+          {Array.from(clothingImages.entries()).map(([item, imageSource], index) => (
+            <ClothingImage
+              key={item}
+              imageSource={imageSource}
+              label={item.charAt(0).toUpperCase() + item.slice(1)}
+              index={index}
+            />
+          ))}
         </View>
-      ) : (
-        <>
-          {/* AI-Generated Clothing Images */}
-          {clothingImages.size > 0 && (
-            <View style={styles.imagesGrid}>
-              {Array.from(clothingImages.entries()).map(
-                ([item, imageUrl], index) => (
-                  <ClothingImage
-                    key={item}
-                    imageUrl={imageUrl}
-                    label={item.charAt(0).toUpperCase() + item.slice(1)}
-                    index={index}
-                  />
-                )
-              )}
-            </View>
-          )}
-        </>
       )}
 
       {/* Weather Summary */}
@@ -109,17 +78,17 @@ export function ClothingAdvice({
 }
 
 interface ClothingImageProps {
-  imageUrl: string;
+  imageSource: ImageSourcePropType;
   label: string;
   index: number;
 }
 
-function ClothingImage({ imageUrl, label, index }: ClothingImageProps) {
+function ClothingImage({ imageSource, label, index }: ClothingImageProps) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
 
   useEffect(() => {
-    // Stagger the fade-in animation
+    // Stagger the fade-in animation - triggers immediately with real PNG images!
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -149,9 +118,9 @@ function ClothingImage({ imageUrl, label, index }: ClothingImageProps) {
     >
       <View style={styles.imageWrapper}>
         <Image
-          source={{ uri: imageUrl }}
+          source={imageSource}
           style={styles.clothingImage}
-          resizeMode="cover"
+          resizeMode="contain"
         />
       </View>
       <Text style={styles.imageLabel}>{label}</Text>
@@ -207,16 +176,6 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
   },
-  loadingContainer: {
-    alignItems: 'center',
-    paddingVertical: 24,
-  },
-  loadingText: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.9)',
-    marginTop: 12,
-    fontWeight: '500',
-  },
   imagesGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -248,8 +207,8 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   clothingImage: {
-    width: '100%',
-    height: '100%',
+    width: '80%',
+    height: '80%',
   },
   imageLabel: {
     fontSize: 11,

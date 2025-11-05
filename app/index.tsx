@@ -167,19 +167,19 @@ export default function Index() {
         <View style={styles.adviceSection}>
           <Text style={styles.adviceTitle}>Tomorrow&apos;s Outfit</Text>
 
-          {adviceLoading ? (
+          {clothingAdvice ? (
+            <ClothingAdvice
+              recommendation={clothingAdvice}
+              tomorrowWeather={weatherData.tomorrow}
+              compact={true}
+            />
+          ) : adviceLoading ? (
             <View style={styles.adviceLoading}>
               <ActivityIndicator size="large" color="#fff" />
               <Text style={styles.adviceLoadingText}>
                 Getting recommendations...
               </Text>
             </View>
-          ) : clothingAdvice ? (
-            <ClothingAdvice
-              recommendation={clothingAdvice}
-              tomorrowWeather={weatherData.tomorrow}
-              compact={true}
-            />
           ) : null}
         </View>
       </View>
