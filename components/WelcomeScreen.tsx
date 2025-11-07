@@ -155,15 +155,13 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
-    fontWeight: '500',
-    color: '#fff',
+    fontWeight: '600',
+    color: Colors.text.primary,
     textAlign: 'center',
     lineHeight: 22,
     paddingHorizontal: 20,
     letterSpacing: 0.3,
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
+    ...Colors.textShadows.medium,
   },
   styleButtonsContainer: {
     flexDirection: 'row',
@@ -222,12 +220,12 @@ const styles = StyleSheet.create({
     textShadowRadius: 4,
   },
   doneButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: Colors.sky.main,
     borderRadius: 16,
     paddingVertical: 18,
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.8)',
+    borderColor: Colors.sky.medium,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.4,
@@ -237,6 +235,6 @@ const styles = StyleSheet.create({
   doneButtonText: {
     fontSize: 18,
     fontWeight: '700',
-    color: Colors.sky.main,
+    color: Colors.text.inverse,
   },
 });

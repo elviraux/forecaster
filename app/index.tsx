@@ -20,6 +20,7 @@ import { PreferencesStorage } from '@/services/preferencesStorage';
 import { WeatherData } from '@/types/weather';
 import { ClothingRecommendationStructured } from '@/types/newell';
 import { UserPreferences } from '@/types/preferences';
+import { Colors } from '@/constants/theme';
 
 const { height } = Dimensions.get('window');
 
@@ -327,16 +328,17 @@ const styles = StyleSheet.create({
   errorTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#fff',
+    color: Colors.text.inverse,
     marginTop: 16,
     marginBottom: 8,
+    ...Colors.textShadows.medium,
   },
   errorMessage: {
     fontSize: 16,
-    color: '#fff',
+    color: Colors.text.inverse,
     textAlign: 'center',
     lineHeight: 24,
-    opacity: 0.9,
+    ...Colors.textShadows.subtle,
   },
   content: {
     flex: 1,
@@ -353,26 +355,29 @@ const styles = StyleSheet.create({
   },
   locationText: {
     fontSize: 15,
-    color: 'rgba(255,255,255,0.9)',
+    color: Colors.text.onAnimatedBg,
     fontWeight: '600',
     marginLeft: 6,
+    ...Colors.textShadows.medium,
   },
   todaySection: {
     alignItems: 'center',
   },
   currentTemp: {
     fontSize: 72,
-    color: '#fff',
+    color: Colors.text.onAnimatedBg,
     fontWeight: '200',
     marginTop: 4,
     marginBottom: 2,
     letterSpacing: -2,
+    ...Colors.textShadows.strong,
   },
   currentDescription: {
     fontSize: 20,
-    color: '#fff',
-    fontWeight: '500',
+    color: Colors.text.onAnimatedBg,
+    fontWeight: '600',
     marginBottom: 16,
+    ...Colors.textShadows.medium,
   },
   todayStats: {
     flexDirection: 'row',
@@ -412,10 +417,11 @@ const styles = StyleSheet.create({
   adviceTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#fff',
+    color: Colors.text.onAnimatedBg,
     marginBottom: 16,
     textAlign: 'center',
     letterSpacing: 0.5,
+    ...Colors.textShadows.medium,
   },
   adviceLoading: {
     alignItems: 'center',

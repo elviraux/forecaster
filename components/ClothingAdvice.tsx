@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { ClothingImageLibrary } from '@/services/clothingImageLibrary';
 import { ClothingRecommendationStructured } from '@/types/newell';
 import { ClothingStyle } from '@/types/preferences';
+import { Colors } from '@/constants/theme';
 
 interface ClothingAdviceProps {
   recommendation: ClothingRecommendationStructured;
@@ -168,12 +169,10 @@ const styles = StyleSheet.create({
   },
   imageLabel: {
     fontSize: 11,
-    color: '#fff',
+    color: Colors.text.onAnimatedBg,
     fontWeight: '600',
     textAlign: 'center',
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
+    ...Colors.textShadows.subtle,
   },
   summaryContainer: {
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
@@ -184,10 +183,11 @@ const styles = StyleSheet.create({
   },
   summaryText: {
     fontSize: 15,
-    color: '#fff',
-    fontWeight: '500',
+    color: Colors.text.onAnimatedBg,
+    fontWeight: '600',
     textAlign: 'center',
     lineHeight: 20,
+    ...Colors.textShadows.medium,
   },
   tempRange: {
     flexDirection: 'row',
@@ -200,9 +200,10 @@ const styles = StyleSheet.create({
   },
   tempText: {
     fontSize: 14,
-    color: 'rgba(255,255,255,0.9)',
+    color: Colors.text.onAnimatedBg,
     fontWeight: '600',
     marginLeft: 4,
+    ...Colors.textShadows.subtle,
   },
   tempDivider: {
     fontSize: 14,

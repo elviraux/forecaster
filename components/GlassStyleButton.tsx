@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { ClothingStyle } from '@/types/preferences';
+import { Colors } from '@/constants/theme';
 
 interface GlassStyleButtonProps {
   style: ClothingStyle;
@@ -98,10 +99,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
   },
   glassContainerSelected: {
-    borderWidth: 3,
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 8,
+    borderWidth: 4,
+    shadowOpacity: 0.5,
+    shadowRadius: 16,
+    elevation: 10,
   },
   blurView: {
     flex: 1,
@@ -121,28 +122,26 @@ const styles = StyleSheet.create({
   },
   selectionRing: {
     position: 'absolute',
-    top: -4,
-    left: -4,
-    right: -4,
-    bottom: -4,
-    borderRadius: (BUTTON_SIZE + 8) / 2,
-    borderWidth: 3,
+    top: -6,
+    left: -6,
+    right: -6,
+    bottom: -6,
+    borderRadius: (BUTTON_SIZE + 12) / 2,
+    borderWidth: 4,
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
-    shadowRadius: 8,
-    elevation: 10,
+    shadowOpacity: 0.8,
+    shadowRadius: 12,
+    elevation: 12,
   },
   label: {
     marginTop: 12,
     fontSize: 15,
     fontWeight: '600',
-    color: '#fff',
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
+    color: Colors.text.onAnimatedBg,
+    ...Colors.textShadows.subtle,
   },
   labelLight: {
-    color: '#333',
+    color: Colors.text.primary,
     textShadowColor: 'transparent',
   },
 });

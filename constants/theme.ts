@@ -19,7 +19,7 @@ export const Colors = {
   accents: {
     boy: '#5FB9E8',        // Sky blue for boy style
     girl: '#D4A5E8',       // Soft lavender-pink (harmonizes with sky)
-    neutral: '#F9D67A',    // Warm golden yellow (complements sky)
+    neutral: '#E8B84D',    // Deep rich gold (stronger contrast)
   },
 
   // Weather-based gradients (all incorporate sky blue theme)
@@ -47,11 +47,12 @@ export const Colors = {
 
   // Text Colors
   text: {
-    primary: '#1A3D52',            // Dark blue-grey (excellent contrast)
-    secondary: '#2A5670',          // Medium blue-grey
-    tertiary: '#5A8FA8',           // Light blue-grey
+    primary: '#1A2F3A',            // Deep charcoal-blue (maximum contrast)
+    secondary: '#2A4555',          // Dark grey-blue
+    tertiary: '#4A6B7A',           // Medium grey-blue
     inverse: '#FFFFFF',            // White text
     link: '#3581A8',               // Sky blue link
+    onAnimatedBg: '#1A2F3A',       // High contrast text for animated backgrounds
   },
 
   // Status Colors (sky-themed)
@@ -67,6 +68,25 @@ export const Colors = {
     light: 'rgba(95, 185, 232, 0.1)',
     medium: 'rgba(95, 185, 232, 0.2)',
     strong: 'rgba(53, 129, 168, 0.3)',
+  },
+
+  // Text Shadows for readability on animated backgrounds
+  textShadows: {
+    subtle: {
+      shadowColor: 'rgba(0, 0, 0, 0.3)',
+      shadowOffset: { width: 0, height: 1 },
+      shadowRadius: 3,
+    },
+    medium: {
+      shadowColor: 'rgba(0, 0, 0, 0.4)',
+      shadowOffset: { width: 0, height: 2 },
+      shadowRadius: 4,
+    },
+    strong: {
+      shadowColor: 'rgba(0, 0, 0, 0.5)',
+      shadowOffset: { width: 0, height: 2 },
+      shadowRadius: 6,
+    },
   },
 };
 
