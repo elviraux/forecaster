@@ -40,24 +40,35 @@ export class WeatherService {
     longitude: number
   ): Promise<string> {
     try {
-      const response = await fetch(
-        `${GEOCODING_API_URL}?latitude=${latitude}&longitude=${longitude}&count=1&language=en&format=json`
-      );
+      // Use Expo's built-in reverse geocoding
+      const geocode = await Location.reverseGeocodeAsync({
+        latitude,
+        longitude,
+      });
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch location name');
+      if (geocode && geocode.length > 0) {
+        const location = geocode[0];
+
+        // Build a readable location name
+        // Priority: city > subregion > region
+        const city = location.city || location.subregion || location.region;
+        const state = location.region;
+
+        if (city && state) {
+          return `${city}, ${state}`;
+        } else if (city) {
+          return city;
+        } else if (state) {
+          return state;
+        }
       }
 
-      const data = await response.json();
-      if (data.results && data.results.length > 0) {
-        const result = data.results[0];
-        return result.name || 'Unknown Location';
-      }
-
-      return 'Unknown Location';
+      // Fallback to a friendly message instead of "Unknown Location"
+      return 'Current Location';
     } catch (error) {
       console.error('Error fetching location name:', error);
-      return 'Unknown Location';
+      // Return a user-friendly placeholder instead of an error message
+      return 'Current Location';
     }
   }
 
