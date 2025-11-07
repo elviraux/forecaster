@@ -12,10 +12,10 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { ClothingStyle } from '@/types/preferences';
 import { PreferencesStorage } from '@/services/preferencesStorage';
 import { GlassStyleButton } from '@/components/GlassStyleButton';
+import { AnimatedBackground } from '@/components/AnimatedBackground';
 import { Colors } from '@/constants/theme';
 
 const { height } = Dimensions.get('window');
@@ -55,10 +55,7 @@ export function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <StatusBar barStyle="light-content" />
-      <LinearGradient
-        colors={[Colors.sky.main, Colors.sky.light, Colors.sky.lightest]}
-        style={StyleSheet.absoluteFillObject}
-      />
+      <AnimatedBackground condition="clear-day" />
 
       <View style={styles.content}>
         {/* Logo */}

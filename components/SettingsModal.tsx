@@ -108,26 +108,21 @@ export function SettingsModal({ visible, onClose, onSave, onReset }: SettingsMod
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
-        {/* Subtle dark overlay for contrast */}
-        <View style={styles.darkOverlay} />
+        <BlurView intensity={80} style={StyleSheet.absoluteFillObject} tint="dark" />
 
         <View style={styles.modalContent}>
-          {/* Header with glass effect */}
-          <BlurView intensity={100} tint="light" style={styles.headerBlur}>
-            <View style={styles.header}>
-              <Text style={styles.title}>Settings</Text>
-              <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                <Ionicons name="close" size={24} color="#fff" />
-              </TouchableOpacity>
-            </View>
-          </BlurView>
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.title}>Settings</Text>
+            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+              <Ionicons name="close" size={24} color="#666" />
+            </TouchableOpacity>
+          </View>
 
           {loading ? (
-            <BlurView intensity={80} tint="light" style={styles.loadingBlur}>
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#fff" />
-              </View>
-            </BlurView>
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={Colors.sky.main} />
+            </View>
           ) : (
             <ScrollView
               style={styles.scrollContainer}
@@ -135,9 +130,8 @@ export function SettingsModal({ visible, onClose, onSave, onReset }: SettingsMod
               showsVerticalScrollIndicator={false}
             >
               {/* Style Selector */}
-              <BlurView intensity={90} tint="light" style={styles.sectionBlur}>
-                <View style={styles.section}>
-                  <Text style={styles.label}>Clothing Style</Text>
+              <View style={styles.section}>
+                <Text style={styles.label}>Clothing Style</Text>
                 <View style={styles.styleButtonsContainer}>
                   <GlassStyleButton
                     style="boy"
@@ -146,6 +140,7 @@ export function SettingsModal({ visible, onClose, onSave, onReset }: SettingsMod
                     selected={clothingStyle === 'boy'}
                     onPress={() => setClothingStyle('boy')}
                     accentColor={Colors.accents.boy}
+                    variant="light"
                   />
 
                   <GlassStyleButton
@@ -155,6 +150,7 @@ export function SettingsModal({ visible, onClose, onSave, onReset }: SettingsMod
                     selected={clothingStyle === 'girl'}
                     onPress={() => setClothingStyle('girl')}
                     accentColor={Colors.accents.girl}
+                    variant="light"
                   />
 
                   <GlassStyleButton
@@ -164,22 +160,21 @@ export function SettingsModal({ visible, onClose, onSave, onReset }: SettingsMod
                     selected={clothingStyle === 'neutral'}
                     onPress={() => setClothingStyle('neutral')}
                     accentColor={Colors.accents.neutral}
+                    variant="light"
                   />
                 </View>
 
-                  {/* Reset Profile Link */}
-                  <TouchableOpacity
-                    style={styles.resetLink}
-                    onPress={handleResetProfile}
-                  >
-                    <Text style={styles.resetLinkText}>Reset Child&apos;s Profile</Text>
-                  </TouchableOpacity>
-                </View>
-              </BlurView>
+                {/* Reset Profile Link */}
+                <TouchableOpacity
+                  style={styles.resetLink}
+                  onPress={handleResetProfile}
+                >
+                  <Text style={styles.resetLinkText}>Reset Child&apos;s Profile</Text>
+                </TouchableOpacity>
+              </View>
 
               {/* Age Input */}
-              <BlurView intensity={90} tint="light" style={styles.sectionBlur}>
-                <View style={styles.section}>
+              <View style={styles.section}>
                 <Text style={styles.label}>Child&apos;s Age</Text>
                 <View style={styles.ageInputContainer}>
                   <TextInput
@@ -194,12 +189,10 @@ export function SettingsModal({ visible, onClose, onSave, onReset }: SettingsMod
                   />
                   <Text style={styles.ageUnit}>years old</Text>
                 </View>
-                </View>
-              </BlurView>
+              </View>
 
               {/* Action Buttons */}
-              <BlurView intensity={90} tint="light" style={styles.actionsBlur}>
-                <View style={styles.actions}>
+              <View style={styles.actions}>
                 <TouchableOpacity
                   style={styles.cancelButton}
                   onPress={onClose}
@@ -219,8 +212,7 @@ export function SettingsModal({ visible, onClose, onSave, onReset }: SettingsMod
                     <Text style={styles.saveButtonText}>Save</Text>
                   )}
                 </TouchableOpacity>
-                </View>
-              </BlurView>
+              </View>
             </ScrollView>
           )}
         </View>
@@ -236,82 +228,56 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
   },
-  darkOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-  },
   modalContent: {
     width: '100%',
     maxWidth: 420,
+    backgroundColor: '#fff',
     borderRadius: 24,
-    overflow: 'hidden',
+    padding: 24,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.4,
+    shadowOpacity: 0.3,
     shadowRadius: 20,
     elevation: 10,
-  },
-  headerBlur: {
-    paddingHorizontal: 24,
-    paddingTop: 24,
-    paddingBottom: 16,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    overflow: 'hidden',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 20,
   },
   title: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#fff',
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
+    color: '#333',
   },
   closeButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#f5f5f5',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  loadingBlur: {
-    padding: 24,
-    borderRadius: 24,
-  },
   loadingContainer: {
-    paddingVertical: 60,
+    paddingVertical: 80,
     alignItems: 'center',
   },
   scrollContainer: {
     maxHeight: 500,
   },
   scrollContent: {
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    gap: 16,
-  },
-  sectionBlur: {
-    borderRadius: 20,
-    padding: 20,
-    overflow: 'hidden',
+    paddingBottom: 16,
+    flexGrow: 1,
   },
   section: {
-    gap: 16,
+    marginBottom: 28,
   },
   label: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#fff',
-    marginBottom: 4,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
+    color: '#333',
+    marginBottom: 20,
   },
   styleButtonsContainer: {
     flexDirection: 'row',
@@ -319,79 +285,72 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   resetLink: {
-    marginTop: 12,
+    marginTop: 20,
     alignItems: 'center',
     paddingVertical: 8,
   },
   resetLinkText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#FFB8B8',
+    fontWeight: '500',
+    color: Colors.status.error,
     textDecorationLine: 'underline',
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
   },
   ageInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    borderRadius: 16,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 12,
     paddingVertical: 16,
     paddingHorizontal: 20,
     gap: 12,
   },
   ageInput: {
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    borderRadius: 12,
+    backgroundColor: '#fff',
+    borderRadius: 10,
     paddingVertical: 12,
     paddingHorizontal: 20,
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: '600',
-    color: '#fff',
+    color: Colors.sky.main,
     textAlign: 'center',
-    minWidth: 80,
+    minWidth: 70,
     borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.4)',
+    borderColor: Colors.ui.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
   ageUnit: {
     fontSize: 15,
     fontWeight: '500',
-    color: '#fff',
-    opacity: 0.9,
-  },
-  actionsBlur: {
-    borderRadius: 20,
-    padding: 20,
-    overflow: 'hidden',
+    color: '#666',
   },
   actions: {
     flexDirection: 'row',
     gap: 12,
+    marginTop: 12,
   },
   cancelButton: {
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    backgroundColor: '#f5f5f5',
     borderRadius: 12,
-    paddingVertical: 16,
+    paddingVertical: 14,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   cancelButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#fff',
+    color: '#666',
   },
   saveButton: {
     flex: 1,
-    backgroundColor: 'rgba(95, 185, 232, 0.9)',
+    backgroundColor: Colors.sky.main,
     borderRadius: 12,
-    paddingVertical: 16,
+    paddingVertical: 14,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.4)',
   },
   saveButtonText: {
     fontSize: 16,
