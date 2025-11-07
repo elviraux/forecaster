@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Forecaster",
-    "slug": "forecaster",
+    "name": "Picko",
+    "slug": "picko",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -11,7 +11,7 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "Forecaster needs your location to show accurate weather information for your area."
+        "NSLocationWhenInUseUsageDescription": "Picko needs your location to show accurate weather information for your area."
       }
     },
     "android": {
@@ -35,7 +35,7 @@
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "Allow Forecaster to use your location to show accurate weather information."
+          "locationAlwaysAndWhenInUsePermission": "Allow Picko to use your location to show accurate weather information."
         }
       ],
       [

@@ -12,7 +12,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { AnimatedBackground, getWeatherCondition } from '@/components/AnimatedBackground';
 import { ClothingAdvice } from '@/components/ClothingAdvice';
-import { FirstLaunchSetup } from '@/components/FirstLaunchSetup';
+import { WelcomeScreen } from '@/components/WelcomeScreen';
 import { SettingsModal } from '@/components/SettingsModal';
 import { WeatherService } from '@/services/weatherService';
 import { NewellService } from '@/services/newellService';
@@ -141,9 +141,9 @@ export default function Index() {
   const currentHour = new Date().getHours();
   const isNight = currentHour < 6 || currentHour > 20;
 
-  // Show first-launch setup if not completed
+  // Show welcome screen if not completed
   if (showSetup) {
-    return <FirstLaunchSetup onComplete={handleSetupComplete} />;
+    return <WelcomeScreen onComplete={handleSetupComplete} />;
   }
 
   // Show loading while checking setup status

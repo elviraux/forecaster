@@ -6,11 +6,17 @@ import {
   TouchableOpacity,
   Modal,
   ActivityIndicator,
+  Image,
+  Dimensions,
+  ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { ClothingStyle } from '@/types/preferences';
 import { PreferencesStorage } from '@/services/preferencesStorage';
+
+const { width } = Dimensions.get('window');
+const CARD_SIZE = (width - 120) / 3;
 
 interface SettingsModalProps {
   visible: boolean;
@@ -86,7 +92,7 @@ export function SettingsModal({ visible, onClose, onSave }: SettingsModalProps) 
           <View style={styles.header}>
             <Text style={styles.title}>Settings</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <Ionicons name="close" size={28} color="#333" />
+              <Ionicons name="close" size={24} color="#666" />
             </TouchableOpacity>
           </View>
 
@@ -95,11 +101,96 @@ export function SettingsModal({ visible, onClose, onSave }: SettingsModalProps) 
               <ActivityIndicator size="large" color="#667eea" />
             </View>
           ) : (
-            <>
+            <ScrollView
+              style={styles.scrollContainer}
+              contentContainerStyle={styles.scrollContent}
+              showsVerticalScrollIndicator={false}
+            >
+              {/* Style Selector */}
+              <View style={styles.section}>
+                <Text style={styles.label}>Clothing Style</Text>
+                <View style={styles.cardsContainer}>
+                  <TouchableOpacity
+                    style={[
+                      styles.card,
+                      clothingStyle === 'boy' && styles.cardSelected,
+                    ]}
+                    onPress={() => setClothingStyle('boy')}
+                    activeOpacity={0.8}
+                  >
+                    <View style={styles.cardImageContainer}>
+                      <Image
+                        source={require('@/assets/style-cards/boy.png')}
+                        style={styles.cardImage}
+                        resizeMode="cover"
+                      />
+                    </View>
+                    <View style={styles.cardLabelContainer}>
+                      <Text style={styles.cardLabel}>Boy</Text>
+                    </View>
+                    {clothingStyle === 'boy' && (
+                      <View style={styles.checkmark}>
+                        <Ionicons name="checkmark-circle" size={22} color="#667eea" />
+                      </View>
+                    )}
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.card,
+                      clothingStyle === 'girl' && styles.cardSelected,
+                    ]}
+                    onPress={() => setClothingStyle('girl')}
+                    activeOpacity={0.8}
+                  >
+                    <View style={styles.cardImageContainer}>
+                      <Image
+                        source={require('@/assets/style-cards/girl.png')}
+                        style={styles.cardImage}
+                        resizeMode="cover"
+                      />
+                    </View>
+                    <View style={styles.cardLabelContainer}>
+                      <Text style={styles.cardLabel}>Girl</Text>
+                    </View>
+                    {clothingStyle === 'girl' && (
+                      <View style={styles.checkmark}>
+                        <Ionicons name="checkmark-circle" size={22} color="#f093fb" />
+                      </View>
+                    )}
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.card,
+                      clothingStyle === 'neutral' && styles.cardSelected,
+                    ]}
+                    onPress={() => setClothingStyle('neutral')}
+                    activeOpacity={0.8}
+                  >
+                    <View style={styles.cardImageContainer}>
+                      <Image
+                        source={require('@/assets/style-cards/neutral.png')}
+                        style={styles.cardImage}
+                        resizeMode="cover"
+                      />
+                    </View>
+                    <View style={styles.cardLabelContainer}>
+                      <Text style={styles.cardLabel}>Neutral</Text>
+                    </View>
+                    {clothingStyle === 'neutral' && (
+                      <View style={styles.checkmark}>
+                        <Ionicons name="checkmark-circle" size={22} color="#764ba2" />
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </View>
+
               {/* Age Selector */}
               <View style={styles.section}>
                 <Text style={styles.label}>Child&apos;s Age</Text>
-                <View style={styles.ageSelector}>
+                <View style={styles.ageContainer}>
                   <TouchableOpacity
                     style={[
                       styles.ageButton,
@@ -110,17 +201,14 @@ export function SettingsModal({ visible, onClose, onSave }: SettingsModalProps) 
                   >
                     <Ionicons
                       name="remove"
-                      size={24}
+                      size={20}
                       color={childAge === 1 ? '#ccc' : '#667eea'}
                     />
                   </TouchableOpacity>
 
-                  <View style={styles.ageDisplay}>
-                    <Text style={styles.ageNumber}>{childAge}</Text>
-                    <Text style={styles.ageLabel}>
-                      {childAge === 1 ? 'year' : 'years'}
-                    </Text>
-                  </View>
+                  <Text style={styles.ageText}>
+                    {childAge} {childAge === 1 ? 'year' : 'years'} old
+                  </Text>
 
                   <TouchableOpacity
                     style={[
@@ -132,82 +220,9 @@ export function SettingsModal({ visible, onClose, onSave }: SettingsModalProps) 
                   >
                     <Ionicons
                       name="add"
-                      size={24}
+                      size={20}
                       color={childAge === 10 ? '#ccc' : '#667eea'}
                     />
-                  </TouchableOpacity>
-                </View>
-              </View>
-
-              {/* Style Selector */}
-              <View style={styles.section}>
-                <Text style={styles.label}>Clothing Style</Text>
-                <View style={styles.styleSelector}>
-                  <TouchableOpacity
-                    style={[
-                      styles.styleButton,
-                      clothingStyle === 'boy' && styles.styleButtonSelected,
-                    ]}
-                    onPress={() => setClothingStyle('boy')}
-                  >
-                    <Ionicons
-                      name="male"
-                      size={28}
-                      color={clothingStyle === 'boy' ? '#667eea' : '#999'}
-                    />
-                    <Text
-                      style={[
-                        styles.styleButtonText,
-                        clothingStyle === 'boy' && styles.styleButtonTextSelected,
-                      ]}
-                    >
-                      Boy
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[
-                      styles.styleButton,
-                      clothingStyle === 'girl' && styles.styleButtonSelected,
-                    ]}
-                    onPress={() => setClothingStyle('girl')}
-                  >
-                    <Ionicons
-                      name="female"
-                      size={28}
-                      color={clothingStyle === 'girl' ? '#f093fb' : '#999'}
-                    />
-                    <Text
-                      style={[
-                        styles.styleButtonText,
-                        clothingStyle === 'girl' && styles.styleButtonTextSelected,
-                      ]}
-                    >
-                      Girl
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[
-                      styles.styleButton,
-                      clothingStyle === 'neutral' && styles.styleButtonSelected,
-                    ]}
-                    onPress={() => setClothingStyle('neutral')}
-                  >
-                    <Ionicons
-                      name="people"
-                      size={28}
-                      color={clothingStyle === 'neutral' ? '#764ba2' : '#999'}
-                    />
-                    <Text
-                      style={[
-                        styles.styleButtonText,
-                        clothingStyle === 'neutral' &&
-                          styles.styleButtonTextSelected,
-                      ]}
-                    >
-                      Neutral
-                    </Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -228,13 +243,13 @@ export function SettingsModal({ visible, onClose, onSave }: SettingsModalProps) 
                   disabled={saving}
                 >
                   {saving ? (
-                    <ActivityIndicator color="#fff" />
+                    <ActivityIndicator color="#fff" size="small" />
                   ) : (
-                    <Text style={styles.saveButtonText}>Save Changes</Text>
+                    <Text style={styles.saveButtonText}>Save</Text>
                   )}
                 </TouchableOpacity>
               </View>
-            </>
+            </ScrollView>
           )}
         </View>
       </View>
@@ -251,7 +266,8 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     width: '100%',
-    maxWidth: 400,
+    maxWidth: 420,
+    maxHeight: '85%',
     backgroundColor: '#fff',
     borderRadius: 24,
     padding: 24,
@@ -265,7 +281,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 20,
   },
   title: {
     fontSize: 24,
@@ -273,16 +289,22 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   closeButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: '#f5f5f5',
     justifyContent: 'center',
     alignItems: 'center',
   },
   loadingContainer: {
-    paddingVertical: 60,
+    paddingVertical: 80,
     alignItems: 'center',
+  },
+  scrollContainer: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 8,
   },
   section: {
     marginBottom: 24,
@@ -291,75 +313,92 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#333',
-    marginBottom: 12,
+    marginBottom: 16,
   },
-  ageSelector: {
+  cardsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  card: {
+    width: CARD_SIZE,
+    aspectRatio: 0.8,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
+    borderWidth: 2,
+    borderColor: '#e0e0e0',
+  },
+  cardSelected: {
+    borderColor: '#667eea',
+    borderWidth: 3,
+  },
+  cardImageContainer: {
+    flex: 1,
+    backgroundColor: '#fafafa',
+  },
+  cardImage: {
+    width: '100%',
+    height: '100%',
+  },
+  cardLabelContainer: {
+    backgroundColor: '#fff',
+    paddingVertical: 8,
+    alignItems: 'center',
+  },
+  cardLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#333',
+  },
+  checkmark: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    backgroundColor: '#fff',
+    borderRadius: 11,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  ageContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#f8f9fa',
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
   },
   ageButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowRadius: 3,
     elevation: 2,
   },
   ageButtonDisabled: {
     opacity: 0.4,
   },
-  ageDisplay: {
-    alignItems: 'center',
-    marginHorizontal: 32,
-  },
-  ageNumber: {
-    fontSize: 48,
-    fontWeight: '300',
-    color: '#333',
-    letterSpacing: -1,
-  },
-  ageLabel: {
-    fontSize: 14,
-    color: '#666',
-    fontWeight: '500',
-    marginTop: -4,
-  },
-  styleSelector: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 8,
-  },
-  styleButton: {
-    flex: 1,
-    backgroundColor: '#f8f9fa',
-    borderRadius: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 12,
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  styleButtonSelected: {
-    backgroundColor: '#fff',
-    borderColor: '#667eea',
-  },
-  styleButtonText: {
-    fontSize: 13,
+  ageText: {
+    fontSize: 16,
     fontWeight: '600',
-    color: '#999',
-    marginTop: 6,
-  },
-  styleButtonTextSelected: {
     color: '#333',
+    marginHorizontal: 20,
+    minWidth: 100,
+    textAlign: 'center',
   },
   actions: {
     flexDirection: 'row',
