@@ -1,4 +1,4 @@
-import { NewellTextRequest, NewellImageRequest, NewellImageResponse } from '@/types/newell';
+import { NewellTextRequest, NewellImageRequest, NewellImageResponse, ClothingRecommendationStructured } from '@/types/newell';
 import { WeatherData } from '@/types/weather';
 
 const NEWELL_API_URL =
@@ -7,16 +7,20 @@ const PROJECT_ID =
   process.env.EXPO_PUBLIC_PROJECT_ID || '70f2e5c3-28e1-4e0a-88de-548110d8b628';
 
 export class NewellService {
+  /**
+   * Generate structured clothing recommendation from AI
+   * Returns both a summary sentence and a list of specific clothing items
+   */
   static async generateClothingRecommendation(
     weather: WeatherData
-  ): Promise<string> {
+  ): Promise<ClothingRecommendationStructured> {
     try {
-      const prompt = this.buildClothingPrompt(weather);
+      const prompt = this.buildStructuredClothingPrompt(weather);
 
       const requestBody: NewellTextRequest = {
         project_id: PROJECT_ID,
         prompt,
-        max_tokens: 300,
+        max_tokens: 400,
         temperature: 0.7,
       };
 
@@ -36,17 +40,20 @@ export class NewellService {
       }
 
       const text = await response.text();
-      return text;
+      return this.parseStructuredResponse(text, weather);
     } catch (error) {
       console.error('Error generating clothing recommendation:', error);
       throw error;
     }
   }
 
-  private static buildClothingPrompt(weather: WeatherData): string {
+  /**
+   * Build a prompt that requests structured output from the AI
+   */
+  private static buildStructuredClothingPrompt(weather: WeatherData): string {
     const { tomorrow } = weather;
 
-    const prompt = `You are a helpful weather assistant. Based on tomorrow's weather forecast, provide a brief, friendly clothing recommendation for a toddler (ages 1-3).
+    const prompt = `You are a helpful weather assistant. Analyze tomorrow's weather forecast and provide clothing recommendations for a toddler (ages 1-3).
 
 Weather forecast for tomorrow:
 - Temperature: High of ${tomorrow.high}°F, Low of ${tomorrow.low}°F
@@ -54,9 +61,103 @@ Weather forecast for tomorrow:
 - Wind: ${tomorrow.windSpeed} mph
 - Chance of precipitation: ${tomorrow.precipitationChance}%
 
-Please provide a short, practical recommendation (2-3 sentences) that mentions specific clothing items appropriate for a toddler. Be warm and helpful in your tone. Focus on layers, comfort, and weather protection.`;
+IMPORTANT: Respond in the following structured format:
+
+SUMMARY: [Write a concise, human-readable summary sentence about tomorrow's weather, e.g., "A chilly and breezy day ahead."]
+
+CLOTHING: [Provide a comma-separated list of specific clothing items using these exact keywords that match our clothing library: tshirt, shirt, sweater, hoodie, pants, shorts, jeans, light-jacket, warm-coat, rain-jacket, sun-hat, warm-hat, sunglasses, gloves, boots, rain-boots]
+
+Choose 3-5 clothing items that are appropriate for the weather conditions. Use the exact keywords from the list above.
+
+Example response format:
+SUMMARY: A warm and sunny afternoon ahead.
+CLOTHING: tshirt, shorts, sun-hat, sunglasses`;
 
     return prompt;
+  }
+
+  /**
+   * Parse the AI's structured response into our ClothingRecommendationStructured format
+   */
+  private static parseStructuredResponse(
+    aiResponse: string,
+    weather: WeatherData
+  ): ClothingRecommendationStructured {
+    try {
+      // Extract SUMMARY and CLOTHING sections
+      const summaryMatch = aiResponse.match(/SUMMARY:\s*(.+?)(?:\n|$)/i);
+      const clothingMatch = aiResponse.match(/CLOTHING:\s*(.+?)(?:\n|$)/i);
+
+      let summary = '';
+      let clothingItems: string[] = [];
+
+      if (summaryMatch && summaryMatch[1]) {
+        summary = summaryMatch[1].trim();
+      }
+
+      if (clothingMatch && clothingMatch[1]) {
+        // Parse the comma-separated clothing items
+        clothingItems = clothingMatch[1]
+          .split(',')
+          .map(item => item.trim().toLowerCase())
+          .filter(item => item.length > 0);
+      }
+
+      // Fallback if parsing fails
+      if (!summary || clothingItems.length === 0) {
+        console.warn('AI response parsing failed, using fallback logic');
+        return this.generateFallbackRecommendation(weather);
+      }
+
+      return {
+        summary,
+        clothing_items: clothingItems,
+      };
+    } catch (error) {
+      console.error('Error parsing AI response:', error);
+      return this.generateFallbackRecommendation(weather);
+    }
+  }
+
+  /**
+   * Generate a fallback recommendation if AI parsing fails
+   */
+  private static generateFallbackRecommendation(
+    weather: WeatherData
+  ): ClothingRecommendationStructured {
+    const { tomorrow } = weather;
+    const avgTemp = (tomorrow.high + tomorrow.low) / 2;
+    const items: string[] = [];
+    let summary = '';
+
+    // Temperature-based logic
+    if (avgTemp < 40) {
+      summary = 'A cold day ahead.';
+      items.push('warm-coat', 'sweater', 'pants', 'warm-hat', 'gloves');
+    } else if (avgTemp < 55) {
+      summary = 'A chilly day ahead.';
+      items.push('light-jacket', 'shirt', 'pants', 'warm-hat');
+    } else if (avgTemp < 70) {
+      summary = 'A mild day ahead.';
+      items.push('shirt', 'pants', 'light-jacket');
+    } else if (avgTemp < 85) {
+      summary = 'A warm day ahead.';
+      items.push('tshirt', 'shorts', 'sun-hat');
+    } else {
+      summary = 'A hot day ahead.';
+      items.push('tshirt', 'shorts', 'sun-hat', 'sunglasses');
+    }
+
+    // Add rain gear if needed
+    if (tomorrow.precipitationChance > 50 || tomorrow.description.toLowerCase().includes('rain')) {
+      items.push('rain-jacket', 'rain-boots');
+      summary = summary.replace('.', ' with rain expected.');
+    }
+
+    return {
+      summary,
+      clothing_items: items.slice(0, 5), // Limit to 5 items
+    };
   }
 
   static parseClothingItems(recommendation: string): string[] {

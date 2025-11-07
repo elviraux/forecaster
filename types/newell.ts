@@ -36,3 +36,8 @@ export interface NewellImageResponse {
   };
   timestamp: string;
 }
+
+export interface ClothingRecommendationStructured {
+  summary: string;
+  clothing_items: string[];
+}

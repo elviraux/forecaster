@@ -1,11 +1,11 @@
 import React, { useEffect, useRef } from 'react';
 import { StyleSheet, View, Text, Animated, Image, ImageSourcePropType } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { NewellService } from '@/services/newellService';
 import { ClothingImageLibrary } from '@/services/clothingImageLibrary';
+import { ClothingRecommendationStructured } from '@/types/newell';
 
 interface ClothingAdviceProps {
-  recommendation: string;
+  recommendation: ClothingRecommendationStructured;
   tomorrowWeather: {
     high: number;
     low: number;
@@ -20,14 +20,11 @@ export function ClothingAdvice({
   tomorrowWeather,
   compact = false,
 }: ClothingAdviceProps) {
-  // Parse clothing items from recommendation
-  const clothingItems = NewellService.parseClothingItems(recommendation);
+  // Extract clothing items and summary from structured recommendation
+  const { clothing_items, summary } = recommendation;
 
   // Get local images instantly - no async loading needed!
-  const clothingImages = ClothingImageLibrary.getImages(clothingItems);
-
-  // Create summary sentence about tomorrow's weather
-  const weatherSummary = generateWeatherSummary(tomorrowWeather);
+  const clothingImages = ClothingImageLibrary.getImages(clothing_items);
 
   return (
     <View style={styles.container}>
@@ -45,9 +42,9 @@ export function ClothingAdvice({
         </View>
       )}
 
-      {/* Weather Summary */}
+      {/* AI-Generated Weather Summary */}
       <View style={styles.summaryContainer}>
-        <Text style={styles.summaryText}>{weatherSummary}</Text>
+        <Text style={styles.summaryText}>{summary}</Text>
       </View>
 
       {/* Tomorrow's Temp Range */}
@@ -126,50 +123,6 @@ function ClothingImage({ imageSource, label, index }: ClothingImageProps) {
       <Text style={styles.imageLabel}>{label}</Text>
     </Animated.View>
   );
-}
-
-function generateWeatherSummary(weather: {
-  high: number;
-  low: number;
-  description: string;
-  precipitationChance: number;
-}): string {
-  const { high, low, description, precipitationChance } = weather;
-
-  // Temperature-based adjectives
-  let tempAdjective = '';
-  const avgTemp = (high + low) / 2;
-
-  if (avgTemp < 40) {
-    tempAdjective = 'cold';
-  } else if (avgTemp < 55) {
-    tempAdjective = 'chilly';
-  } else if (avgTemp < 70) {
-    tempAdjective = 'mild';
-  } else if (avgTemp < 85) {
-    tempAdjective = 'warm';
-  } else {
-    tempAdjective = 'hot';
-  }
-
-  // Build summary
-  let summary = `A ${tempAdjective}`;
-
-  // Add weather condition
-  const lowerDesc = description.toLowerCase();
-  if (lowerDesc.includes('rain') || precipitationChance > 50) {
-    summary += ' and rainy';
-  } else if (lowerDesc.includes('cloud')) {
-    summary += ' and cloudy';
-  } else if (lowerDesc.includes('clear') || lowerDesc.includes('sunny')) {
-    summary += ' and clear';
-  } else if (lowerDesc.includes('snow')) {
-    summary += ' and snowy';
-  }
-
-  summary += ' day ahead.';
-
-  return summary;
 }
 
 const styles = StyleSheet.create({

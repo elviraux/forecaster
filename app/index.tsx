@@ -14,6 +14,7 @@ import { ClothingAdvice } from '@/components/ClothingAdvice';
 import { WeatherService } from '@/services/weatherService';
 import { NewellService } from '@/services/newellService';
 import { WeatherData } from '@/types/weather';
+import { ClothingRecommendationStructured } from '@/types/newell';
 
 const { height } = Dimensions.get('window');
 
@@ -21,7 +22,7 @@ export default function Index() {
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [clothingAdvice, setClothingAdvice] = useState<string | null>(null);
+  const [clothingAdvice, setClothingAdvice] = useState<ClothingRecommendationStructured | null>(null);
   const [adviceLoading, setAdviceLoading] = useState(false);
 
   // Load weather and AI advice on focus
@@ -70,9 +71,11 @@ export default function Index() {
       setClothingAdvice(recommendation);
     } catch (err) {
       console.error('Error getting AI recommendation:', err);
-      setClothingAdvice(
-        'A comfortable outfit with layers is always a good choice!'
-      );
+      // Provide fallback structured recommendation
+      setClothingAdvice({
+        summary: 'A comfortable outfit with layers is always a good choice!',
+        clothing_items: ['shirt', 'pants', 'light-jacket'],
+      });
     } finally {
       setAdviceLoading(false);
     }
