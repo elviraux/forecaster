@@ -3,6 +3,7 @@ import { StyleSheet, View, Text, Animated, Image, ImageSourcePropType } from 're
 import { Ionicons } from '@expo/vector-icons';
 import { ClothingImageLibrary } from '@/services/clothingImageLibrary';
 import { ClothingRecommendationStructured } from '@/types/newell';
+import { ClothingStyle } from '@/types/preferences';
 
 interface ClothingAdviceProps {
   recommendation: ClothingRecommendationStructured;
@@ -12,19 +13,21 @@ interface ClothingAdviceProps {
     description: string;
     precipitationChance: number;
   };
+  clothingStyle?: ClothingStyle;
   compact?: boolean;
 }
 
 export function ClothingAdvice({
   recommendation,
   tomorrowWeather,
+  clothingStyle = 'neutral',
   compact = false,
 }: ClothingAdviceProps) {
   // Extract clothing items and summary from structured recommendation
   const { clothing_items, summary } = recommendation;
 
-  // Get local images instantly - no async loading needed!
-  const clothingImages = ClothingImageLibrary.getImages(clothing_items);
+  // Get local images instantly - now style-specific!
+  const clothingImages = ClothingImageLibrary.getImages(clothing_items, clothingStyle);
 
   return (
     <View style={styles.container}>

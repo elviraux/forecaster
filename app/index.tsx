@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -6,15 +6,20 @@ import {
   ActivityIndicator,
   StatusBar,
   Dimensions,
+  TouchableOpacity,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { AnimatedBackground, getWeatherCondition } from '@/components/AnimatedBackground';
 import { ClothingAdvice } from '@/components/ClothingAdvice';
+import { FirstLaunchSetup } from '@/components/FirstLaunchSetup';
+import { SettingsModal } from '@/components/SettingsModal';
 import { WeatherService } from '@/services/weatherService';
 import { NewellService } from '@/services/newellService';
+import { PreferencesStorage } from '@/services/preferencesStorage';
 import { WeatherData } from '@/types/weather';
 import { ClothingRecommendationStructured } from '@/types/newell';
+import { UserPreferences } from '@/types/preferences';
 
 const { height } = Dimensions.get('window');
 
@@ -25,13 +30,57 @@ export default function Index() {
   const [clothingAdvice, setClothingAdvice] = useState<ClothingRecommendationStructured | null>(null);
   const [adviceLoading, setAdviceLoading] = useState(false);
 
+  // Personalization state
+  const [preferences, setPreferences] = useState<UserPreferences | null>(null);
+  const [showSetup, setShowSetup] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [checkingSetup, setCheckingSetup] = useState(true);
+
+  // Check if first launch on mount
+  useEffect(() => {
+    checkFirstLaunch();
+  }, []);
+
   // Load weather and AI advice on focus
   useFocusEffect(
     useCallback(() => {
-      loadWeatherAndAdvice();
+      if (preferences?.hasCompletedSetup) {
+        loadWeatherAndAdvice();
+      }
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
+    }, [preferences])
   );
+
+  const checkFirstLaunch = async () => {
+    try {
+      const prefs = await PreferencesStorage.getPreferences();
+      setPreferences(prefs);
+
+      if (!prefs.hasCompletedSetup) {
+        setShowSetup(true);
+      }
+    } catch (error) {
+      console.error('Error checking first launch:', error);
+    } finally {
+      setCheckingSetup(false);
+    }
+  };
+
+  const handleSetupComplete = async () => {
+    setShowSetup(false);
+    const prefs = await PreferencesStorage.getPreferences();
+    setPreferences(prefs);
+    loadWeatherAndAdvice();
+  };
+
+  const handleSettingsSave = async () => {
+    const prefs = await PreferencesStorage.getPreferences();
+    setPreferences(prefs);
+    // Reload AI advice with new preferences
+    if (weatherData) {
+      loadClothingAdvice(weatherData);
+    }
+  };
 
   const loadWeatherAndAdvice = async () => {
     try {
@@ -65,8 +114,15 @@ export default function Index() {
   const loadClothingAdvice = async (weather: WeatherData) => {
     try {
       setAdviceLoading(true);
+
+      // Use user preferences for personalized recommendations
+      const childAge = preferences?.childAge || 2;
+      const clothingStyle = preferences?.clothingStyle || 'neutral';
+
       const recommendation = await NewellService.generateClothingRecommendation(
-        weather
+        weather,
+        childAge,
+        clothingStyle
       );
       setClothingAdvice(recommendation);
     } catch (err) {
@@ -84,6 +140,21 @@ export default function Index() {
   // Determine if it's night time
   const currentHour = new Date().getHours();
   const isNight = currentHour < 6 || currentHour > 20;
+
+  // Show first-launch setup if not completed
+  if (showSetup) {
+    return <FirstLaunchSetup onComplete={handleSetupComplete} />;
+  }
+
+  // Show loading while checking setup status
+  if (checkingSetup) {
+    return (
+      <View style={styles.loadingContainer}>
+        <AnimatedBackground condition="clear-day" />
+        <ActivityIndicator size="large" color="#fff" />
+      </View>
+    );
+  }
 
   if (loading) {
     return (
@@ -122,6 +193,14 @@ export default function Index() {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
       <AnimatedBackground condition={weatherCondition} />
+
+      {/* Settings Gear Icon */}
+      <TouchableOpacity
+        style={styles.settingsButton}
+        onPress={() => setShowSettings(true)}
+      >
+        <Ionicons name="settings-outline" size={24} color="rgba(255,255,255,0.9)" />
+      </TouchableOpacity>
 
       <View style={styles.content}>
         {/* Location */}
@@ -174,6 +253,7 @@ export default function Index() {
             <ClothingAdvice
               recommendation={clothingAdvice}
               tomorrowWeather={weatherData.tomorrow}
+              clothingStyle={preferences?.clothingStyle || 'neutral'}
               compact={true}
             />
           ) : adviceLoading ? (
@@ -186,6 +266,13 @@ export default function Index() {
           ) : null}
         </View>
       </View>
+
+      {/* Settings Modal */}
+      <SettingsModal
+        visible={showSettings}
+        onClose={() => setShowSettings(false)}
+        onSave={handleSettingsSave}
+      />
     </View>
   );
 }
@@ -193,6 +280,23 @@ export default function Index() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  settingsButton: {
+    position: 'absolute',
+    top: 60,
+    right: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   loadingContainer: {
     flex: 1,

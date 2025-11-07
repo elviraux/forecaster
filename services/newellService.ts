@@ -1,5 +1,6 @@
 import { NewellTextRequest, NewellImageRequest, NewellImageResponse, ClothingRecommendationStructured } from '@/types/newell';
 import { WeatherData } from '@/types/weather';
+import { ClothingStyle } from '@/types/preferences';
 
 const NEWELL_API_URL =
   process.env.EXPO_PUBLIC_NEWELL_API_URL || 'https://newell.fastshot.ai';
@@ -12,10 +13,12 @@ export class NewellService {
    * Returns both a summary sentence and a list of specific clothing items
    */
   static async generateClothingRecommendation(
-    weather: WeatherData
+    weather: WeatherData,
+    childAge: number = 2,
+    clothingStyle: ClothingStyle = 'neutral'
   ): Promise<ClothingRecommendationStructured> {
     try {
-      const prompt = this.buildStructuredClothingPrompt(weather);
+      const prompt = this.buildStructuredClothingPrompt(weather, childAge, clothingStyle);
 
       const requestBody: NewellTextRequest = {
         project_id: PROJECT_ID,
@@ -49,11 +52,27 @@ export class NewellService {
 
   /**
    * Build a prompt that requests structured output from the AI
+   * Now includes age and style personalization
    */
-  private static buildStructuredClothingPrompt(weather: WeatherData): string {
+  private static buildStructuredClothingPrompt(
+    weather: WeatherData,
+    childAge: number,
+    clothingStyle: ClothingStyle
+  ): string {
     const { tomorrow } = weather;
 
-    const prompt = `You are a helpful weather assistant. Analyze tomorrow's weather forecast and provide clothing recommendations for a toddler (ages 1-3).
+    // Customize prompts based on age
+    const ageDescription = this.getAgeDescription(childAge);
+
+    // Customize clothing keywords based on style
+    const clothingKeywords = this.getStyleKeywords(clothingStyle);
+
+    // Style guidance
+    const styleGuidance = this.getStyleGuidance(clothingStyle);
+
+    const prompt = `You are a helpful weather assistant. Analyze tomorrow's weather forecast and provide clothing recommendations for a ${childAge}-year-old child (${ageDescription}).
+
+${styleGuidance}
 
 Weather forecast for tomorrow:
 - Temperature: High of ${tomorrow.high}°F, Low of ${tomorrow.low}°F
@@ -65,15 +84,84 @@ IMPORTANT: Respond in the following structured format:
 
 SUMMARY: [Write a concise, human-readable summary sentence about tomorrow's weather, e.g., "A chilly and breezy day ahead."]
 
-CLOTHING: [Provide a comma-separated list of specific clothing items using these exact keywords that match our clothing library: tshirt, shirt, sweater, hoodie, pants, shorts, jeans, light-jacket, warm-coat, rain-jacket, sun-hat, warm-hat, sunglasses, gloves, boots, rain-boots]
+Respond EXACTLY in the following format:
 
-Choose 3-5 clothing items that are appropriate for the weather conditions. Use the exact keywords from the list above.
+SUMMARY: [Concise, human-readable summary sentence about tomorrow's weather, e.g., "A chilly and breezy day ahead."]
+
+CLOTHING: [Comma-separated list of items using ONLY these exact keywords:
+${clothingKeywords}]
+
+---
+
+CLOTHING LOGIC RULES:
+
+1. Layering consistency:
+   - Use light layers only (e.g., tshirt + light-jacket) OR warm layers only (e.g., shirt + sweater + warm-coat).
+   - Do NOT combine multiple outer layers (no sweater + hoodie + jacket combos).
+   - Choose only ONE from each clothing category:
+     - Top: tshirt, shirt, sweater, or hoodie
+     - Outerwear: light-jacket, warm-coat, or rain-jacket
+     - Bottom: pants, jeans, or shorts
+     - Footwear: boots or rain-boots (only if cold or wet)
+     - Accessories: weather-based (sun-hat, warm-hat, sunglasses, gloves)
+
+2. Weather adaptation examples:
+   - Hot (≥75°F): tshirt, shorts, sun-hat, sunglasses
+   - Mild (60–74°F): shirt, pants, light-jacket
+   - Cool (45–59°F): sweater, jeans, light-jacket
+   - Cold (≤44°F): hoodie, warm-coat, pants, warm-hat, gloves
+   - Rainy: replace outerwear with rain-jacket, add rain-boots
+   - Windy: prefer light-jacket or warm-coat even if mild
+
+3. Avoid illogical combinations:
+   - Never combine: sweater + hoodie
+   - Never combine: light-jacket + warm-coat
+   - Never combine: shorts + warm-hat or gloves
 
 Example response format:
 SUMMARY: A warm and sunny afternoon ahead.
 CLOTHING: tshirt, shorts, sun-hat, sunglasses`;
 
     return prompt;
+  }
+
+  /**
+   * Get age-appropriate description for the prompt
+   */
+  private static getAgeDescription(age: number): string {
+    if (age <= 1) return 'infant/toddler, needs comfortable easy-to-wear items';
+    if (age <= 3) return 'toddler, needs comfortable and practical items';
+    if (age <= 5) return 'preschooler, active and playful';
+    if (age <= 7) return 'young child, very active';
+    return 'child, active and independent';
+  }
+
+  /**
+   * Get style-specific clothing keywords
+   */
+  private static getStyleKeywords(style: ClothingStyle): string {
+    const baseItems = 'tshirt, shirt, sweater, hoodie, pants, shorts, jeans, light-jacket, warm-coat, rain-jacket, sun-hat, warm-hat, sunglasses, gloves, boots, rain-boots';
+
+    if (style === 'girl') {
+      return baseItems + ', dress, skirt, leggings';
+    }
+
+    return baseItems;
+  }
+
+  /**
+   * Get style-specific guidance for the AI
+   */
+  private static getStyleGuidance(style: ClothingStyle): string {
+    switch (style) {
+      case 'boy':
+        return 'Style preference: Boy - focus on practical, sporty, and comfortable clothing suitable for boys.';
+      case 'girl':
+        return 'Style preference: Girl - include feminine options like dresses, skirts, and leggings when appropriate, along with practical items.';
+      case 'neutral':
+      default:
+        return 'Style preference: Neutral/Unisex - focus on gender-neutral, practical, and comfortable clothing.';
+    }
   }
 
   /**
