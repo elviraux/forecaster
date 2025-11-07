@@ -7,6 +7,7 @@ import {
   Modal,
   ActivityIndicator,
   ScrollView,
+  TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
@@ -22,7 +23,7 @@ interface SettingsModalProps {
 }
 
 export function SettingsModal({ visible, onClose, onSave }: SettingsModalProps) {
-  const [childAge, setChildAge] = useState(2);
+  const [childAge, setChildAge] = useState('2');
   const [clothingStyle, setClothingStyle] = useState<ClothingStyle>('neutral');
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -37,7 +38,7 @@ export function SettingsModal({ visible, onClose, onSave }: SettingsModalProps) 
     try {
       setLoading(true);
       const prefs = await PreferencesStorage.getPreferences();
-      setChildAge(prefs.childAge);
+      setChildAge(prefs.childAge.toString());
       setClothingStyle(prefs.clothingStyle);
     } catch (error) {
       console.error('Error loading preferences:', error);
@@ -46,23 +47,20 @@ export function SettingsModal({ visible, onClose, onSave }: SettingsModalProps) 
     }
   };
 
-  const incrementAge = () => {
-    if (childAge < 10) {
-      setChildAge(childAge + 1);
-    }
-  };
-
-  const decrementAge = () => {
-    if (childAge > 1) {
-      setChildAge(childAge - 1);
-    }
+  const handleAgeChange = (text: string) => {
+    // Only allow numeric input
+    const numericValue = text.replace(/[^0-9]/g, '');
+    setChildAge(numericValue);
   };
 
   const handleSave = async () => {
     try {
       setSaving(true);
+      const age = parseInt(childAge) || 2;
+      // Validate age between 1-10
+      const validatedAge = Math.max(1, Math.min(10, age));
       await PreferencesStorage.updatePreferences({
-        childAge,
+        childAge: validatedAge,
         clothingStyle,
       });
       onSave();
@@ -136,43 +134,21 @@ export function SettingsModal({ visible, onClose, onSave }: SettingsModalProps) 
                 </View>
               </View>
 
-              {/* Age Selector */}
+              {/* Age Input */}
               <View style={styles.section}>
                 <Text style={styles.label}>Child&apos;s Age</Text>
-                <View style={styles.ageContainer}>
-                  <TouchableOpacity
-                    style={[
-                      styles.ageButton,
-                      childAge === 1 && styles.ageButtonDisabled,
-                    ]}
-                    onPress={decrementAge}
-                    disabled={childAge === 1}
-                  >
-                    <Ionicons
-                      name="remove"
-                      size={20}
-                      color={childAge === 1 ? '#ccc' : Colors.sky.main}
-                    />
-                  </TouchableOpacity>
-
-                  <Text style={styles.ageText}>
-                    {childAge} {childAge === 1 ? 'year' : 'years'} old
-                  </Text>
-
-                  <TouchableOpacity
-                    style={[
-                      styles.ageButton,
-                      childAge === 10 && styles.ageButtonDisabled,
-                    ]}
-                    onPress={incrementAge}
-                    disabled={childAge === 10}
-                  >
-                    <Ionicons
-                      name="add"
-                      size={20}
-                      color={childAge === 10 ? '#ccc' : Colors.sky.main}
-                    />
-                  </TouchableOpacity>
+                <View style={styles.ageInputContainer}>
+                  <TextInput
+                    style={styles.ageInput}
+                    value={childAge}
+                    onChangeText={handleAgeChange}
+                    keyboardType="number-pad"
+                    maxLength={2}
+                    placeholder="2"
+                    placeholderTextColor="#ccc"
+                    returnKeyType="done"
+                  />
+                  <Text style={styles.ageUnit}>years old</Text>
                 </View>
               </View>
 
@@ -269,38 +245,38 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     alignItems: 'center',
   },
-  ageContainer: {
+  ageInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#f8f9fa',
     borderRadius: 12,
-    paddingVertical: 14,
+    paddingVertical: 16,
     paddingHorizontal: 20,
+    gap: 12,
   },
-  ageButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+  ageInput: {
     backgroundColor: '#fff',
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    fontSize: 24,
+    fontWeight: '600',
+    color: Colors.sky.main,
+    textAlign: 'center',
+    minWidth: 70,
+    borderWidth: 2,
+    borderColor: Colors.ui.border,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
   },
-  ageButtonDisabled: {
-    opacity: 0.4,
-  },
-  ageText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginHorizontal: 20,
-    minWidth: 100,
-    textAlign: 'center',
+  ageUnit: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: '#666',
   },
   actions: {
     flexDirection: 'row',

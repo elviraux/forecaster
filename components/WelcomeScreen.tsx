@@ -7,9 +7,12 @@ import {
   StatusBar,
   ActivityIndicator,
   Dimensions,
+  Image,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
 import { ClothingStyle } from '@/types/preferences';
 import { PreferencesStorage } from '@/services/preferencesStorage';
 import { GlassStyleButton } from '@/components/GlassStyleButton';
@@ -22,26 +25,23 @@ interface WelcomeScreenProps {
 }
 
 export function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
-  const [childAge, setChildAge] = useState(2);
+  const [childAge, setChildAge] = useState('2');
   const [clothingStyle, setClothingStyle] = useState<ClothingStyle>('neutral');
   const [saving, setSaving] = useState(false);
 
-  const incrementAge = () => {
-    if (childAge < 10) {
-      setChildAge(childAge + 1);
-    }
-  };
-
-  const decrementAge = () => {
-    if (childAge > 1) {
-      setChildAge(childAge - 1);
-    }
+  const handleAgeChange = (text: string) => {
+    // Only allow numeric input
+    const numericValue = text.replace(/[^0-9]/g, '');
+    setChildAge(numericValue);
   };
 
   const handleDone = async () => {
     try {
       setSaving(true);
-      await PreferencesStorage.completeSetup(childAge, clothingStyle);
+      const age = parseInt(childAge) || 2;
+      // Validate age between 1-10
+      const validatedAge = Math.max(1, Math.min(10, age));
+      await PreferencesStorage.completeSetup(validatedAge, clothingStyle);
       onComplete();
     } catch (error) {
       console.error('Error saving preferences:', error);
@@ -50,7 +50,10 @@ export function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
   };
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
       <StatusBar barStyle="light-content" />
       <LinearGradient
         colors={[Colors.sky.main, Colors.sky.light, Colors.sky.lightest]}
@@ -58,10 +61,15 @@ export function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
       />
 
       <View style={styles.content}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.heading}>
-            Picko — the AI that helps parents dress their little ones for the day
+        {/* Logo */}
+        <View style={styles.logoContainer}>
+          <Image
+            source={require('@/assets/images/picko-logo.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+          <Text style={styles.subtitle}>
+            AI that helps parents dress their little ones for the day
           </Text>
         </View>
 
@@ -95,42 +103,27 @@ export function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
           />
         </View>
 
-        {/* Age Selector */}
-        <View style={styles.ageContainer}>
-          <TouchableOpacity
-            style={[styles.ageButton, childAge === 1 && styles.ageButtonDisabled]}
-            onPress={decrementAge}
-            disabled={childAge === 1}
-          >
-            <Ionicons
-              name="remove"
-              size={24}
-              color={childAge === 1 ? 'rgba(255,255,255,0.3)' : '#fff'}
-            />
-          </TouchableOpacity>
-
-          <Text style={styles.ageText}>
-            {childAge} {childAge === 1 ? 'year' : 'years'} old
-          </Text>
-
-          <TouchableOpacity
-            style={[styles.ageButton, childAge === 10 && styles.ageButtonDisabled]}
-            onPress={incrementAge}
-            disabled={childAge === 10}
-          >
-            <Ionicons
-              name="add"
-              size={24}
-              color={childAge === 10 ? 'rgba(255,255,255,0.3)' : '#fff'}
-            />
-          </TouchableOpacity>
+        {/* Age Input */}
+        <View style={styles.ageInputContainer}>
+          <Text style={styles.ageLabel}>Child&apos;s Age</Text>
+          <TextInput
+            style={styles.ageInput}
+            value={childAge}
+            onChangeText={handleAgeChange}
+            keyboardType="number-pad"
+            maxLength={2}
+            placeholder="2"
+            placeholderTextColor="rgba(255,255,255,0.5)"
+            returnKeyType="done"
+          />
+          <Text style={styles.ageUnit}>years old</Text>
         </View>
 
         {/* Done Button */}
         <TouchableOpacity
           style={styles.doneButton}
           onPress={handleDone}
-          disabled={saving}
+          disabled={saving || !childAge}
         >
           {saving ? (
             <ActivityIndicator color={Colors.sky.main} />
@@ -139,7 +132,7 @@ export function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
           )}
         </TouchableOpacity>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -154,52 +147,66 @@ const styles = StyleSheet.create({
     paddingBottom: Math.max(40, height * 0.05),
     justifyContent: 'space-between',
   },
-  header: {
+  logoContainer: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 8,
   },
-  heading: {
-    fontSize: 24,
-    fontWeight: '600',
+  logo: {
+    width: 220,
+    height: 80,
+    marginBottom: 16,
+  },
+  subtitle: {
+    fontSize: 16,
+    fontWeight: '500',
     color: '#fff',
     textAlign: 'center',
-    lineHeight: 34,
-    paddingHorizontal: 16,
+    lineHeight: 22,
+    paddingHorizontal: 20,
     letterSpacing: 0.3,
+    opacity: 0.95,
   },
   styleButtonsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
     paddingHorizontal: 20,
+    marginVertical: 8,
   },
-  ageContainer: {
-    flexDirection: 'row',
+  ageInputContainer: {
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: 'rgba(255,255,255,0.2)',
     borderRadius: 16,
-    paddingVertical: 16,
+    paddingVertical: 20,
     paddingHorizontal: 24,
   },
-  ageButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  ageButtonDisabled: {
-    opacity: 0.4,
-  },
-  ageText: {
-    fontSize: 20,
+  ageLabel: {
+    fontSize: 15,
     fontWeight: '600',
     color: '#fff',
-    marginHorizontal: 24,
-    minWidth: 120,
+    marginBottom: 12,
+    letterSpacing: 0.5,
+    opacity: 0.95,
+  },
+  ageInput: {
+    backgroundColor: 'rgba(255,255,255,0.3)',
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    fontSize: 32,
+    fontWeight: '600',
+    color: '#fff',
     textAlign: 'center',
+    minWidth: 80,
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.4)',
+  },
+  ageUnit: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: '#fff',
+    marginTop: 10,
+    opacity: 0.9,
   },
   doneButton: {
     backgroundColor: '#fff',
