@@ -13,6 +13,7 @@ import { BlurView } from 'expo-blur';
 import { ClothingStyle } from '@/types/preferences';
 import { PreferencesStorage } from '@/services/preferencesStorage';
 import { GlassStyleButton } from '@/components/GlassStyleButton';
+import { Colors } from '@/constants/theme';
 
 interface SettingsModalProps {
   visible: boolean;
@@ -94,7 +95,7 @@ export function SettingsModal({ visible, onClose, onSave }: SettingsModalProps) 
 
           {loading ? (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#667eea" />
+              <ActivityIndicator size="large" color={Colors.sky.main} />
             </View>
           ) : (
             <ScrollView
@@ -112,7 +113,7 @@ export function SettingsModal({ visible, onClose, onSave }: SettingsModalProps) 
                     imageSource={require('@/assets/face-avatars/boy.png')}
                     selected={clothingStyle === 'boy'}
                     onPress={() => setClothingStyle('boy')}
-                    accentColor="#667eea"
+                    accentColor={Colors.accents.boy}
                   />
 
                   <GlassStyleButton
@@ -121,7 +122,7 @@ export function SettingsModal({ visible, onClose, onSave }: SettingsModalProps) 
                     imageSource={require('@/assets/face-avatars/girl.png')}
                     selected={clothingStyle === 'girl'}
                     onPress={() => setClothingStyle('girl')}
-                    accentColor="#f093fb"
+                    accentColor={Colors.accents.girl}
                   />
 
                   <GlassStyleButton
@@ -130,7 +131,7 @@ export function SettingsModal({ visible, onClose, onSave }: SettingsModalProps) 
                     imageSource={require('@/assets/face-avatars/neutral.png')}
                     selected={clothingStyle === 'neutral'}
                     onPress={() => setClothingStyle('neutral')}
-                    accentColor="#fbbf24"
+                    accentColor={Colors.accents.neutral}
                   />
                 </View>
               </View>
@@ -150,7 +151,7 @@ export function SettingsModal({ visible, onClose, onSave }: SettingsModalProps) 
                     <Ionicons
                       name="remove"
                       size={20}
-                      color={childAge === 1 ? '#ccc' : '#667eea'}
+                      color={childAge === 1 ? '#ccc' : Colors.sky.main}
                     />
                   </TouchableOpacity>
 
@@ -169,7 +170,7 @@ export function SettingsModal({ visible, onClose, onSave }: SettingsModalProps) 
                     <Ionicons
                       name="add"
                       size={20}
-                      color={childAge === 10 ? '#ccc' : '#667eea'}
+                      color={childAge === 10 ? '#ccc' : Colors.sky.main}
                     />
                   </TouchableOpacity>
                 </View>
@@ -320,7 +321,7 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     flex: 1,
-    backgroundColor: '#667eea',
+    backgroundColor: Colors.sky.main,
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',

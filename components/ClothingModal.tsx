@@ -12,6 +12,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { NewellService } from '@/services/newellService';
+import { Colors } from '@/constants/theme';
 
 interface ClothingModalProps {
   visible: boolean;
@@ -76,7 +77,7 @@ export function ClothingModal({
             {/* Header */}
             <View style={styles.header}>
               <View style={styles.headerIcon}>
-                <Ionicons name="shirt" size={28} color="#4A90E2" />
+                <Ionicons name="shirt" size={28} color={Colors.sky.main} />
               </View>
               <Text style={styles.headerTitle}>Toddler Outfit Suggestion</Text>
               <TouchableOpacity
@@ -95,7 +96,7 @@ export function ClothingModal({
             >
               {loading ? (
                 <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="large" color="#4A90E2" />
+                  <ActivityIndicator size="large" color={Colors.sky.main} />
                   <Text style={styles.loadingText}>
                     Getting AI recommendations...
                   </Text>
@@ -116,7 +117,7 @@ export function ClothingModal({
                                   item
                                 ) as keyof typeof Ionicons.glyphMap}
                                 size={24}
-                                color="#4A90E2"
+                                color={Colors.sky.main}
                               />
                             </View>
                             <Text style={styles.itemText}>
@@ -184,7 +185,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#E3F2FD',
+    backgroundColor: Colors.ui.background,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -240,7 +241,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#E3F2FD',
+    backgroundColor: Colors.ui.background,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 6,
@@ -263,7 +264,7 @@ const styles = StyleSheet.create({
   doneButton: {
     margin: 20,
     marginTop: 0,
-    backgroundColor: '#4A90E2',
+    backgroundColor: Colors.sky.main,
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',

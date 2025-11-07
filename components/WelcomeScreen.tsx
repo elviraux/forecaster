@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { ClothingStyle } from '@/types/preferences';
 import { PreferencesStorage } from '@/services/preferencesStorage';
 import { GlassStyleButton } from '@/components/GlassStyleButton';
+import { Colors } from '@/constants/theme';
 
 const { height } = Dimensions.get('window');
 
@@ -52,7 +53,7 @@ export function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
       <LinearGradient
-        colors={['#667eea', '#764ba2', '#f093fb']}
+        colors={[Colors.sky.main, Colors.sky.light, Colors.sky.lightest]}
         style={StyleSheet.absoluteFillObject}
       />
 
@@ -72,7 +73,7 @@ export function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
             imageSource={require('@/assets/face-avatars/boy.png')}
             selected={clothingStyle === 'boy'}
             onPress={() => setClothingStyle('boy')}
-            accentColor="#667eea"
+            accentColor={Colors.accents.boy}
           />
 
           <GlassStyleButton
@@ -81,7 +82,7 @@ export function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
             imageSource={require('@/assets/face-avatars/girl.png')}
             selected={clothingStyle === 'girl'}
             onPress={() => setClothingStyle('girl')}
-            accentColor="#f093fb"
+            accentColor={Colors.accents.girl}
           />
 
           <GlassStyleButton
@@ -90,7 +91,7 @@ export function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
             imageSource={require('@/assets/face-avatars/neutral.png')}
             selected={clothingStyle === 'neutral'}
             onPress={() => setClothingStyle('neutral')}
-            accentColor="#fbbf24"
+            accentColor={Colors.accents.neutral}
           />
         </View>
 
@@ -132,7 +133,7 @@ export function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
           disabled={saving}
         >
           {saving ? (
-            <ActivityIndicator color="#667eea" />
+            <ActivityIndicator color={Colors.sky.main} />
           ) : (
             <Text style={styles.doneButtonText}>Done</Text>
           )}
@@ -214,6 +215,6 @@ const styles = StyleSheet.create({
   doneButtonText: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#667eea',
+    color: Colors.sky.main,
   },
 });

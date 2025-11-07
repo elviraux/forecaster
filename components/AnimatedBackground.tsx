@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { StyleSheet, Animated, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { WeatherCondition, WeatherColors } from '@/types/weather';
+import { Colors } from '@/constants/theme';
 
 interface AnimatedBackgroundProps {
   condition: WeatherCondition;
@@ -59,7 +60,7 @@ export function AnimatedBackground({ condition }: AnimatedBackgroundProps) {
         ]}
       >
         <LinearGradient
-          colors={['rgba(255, 255, 255, 0.1)', 'transparent']}
+          colors={['rgba(255, 255, 255, 0.15)', 'transparent']}
           style={StyleSheet.absoluteFillObject}
         />
       </Animated.View>
@@ -70,32 +71,32 @@ export function AnimatedBackground({ condition }: AnimatedBackgroundProps) {
 function getWeatherColors(condition: WeatherCondition): WeatherColors {
   const colorMap: Record<WeatherCondition, WeatherColors> = {
     'clear-day': {
-      gradientStart: '#4A90E2',
-      gradientEnd: '#87CEEB',
+      gradientStart: Colors.weather.clearDay[0],
+      gradientEnd: Colors.weather.clearDay[2],
     },
     'clear-night': {
-      gradientStart: '#1A237E',
-      gradientEnd: '#283593',
+      gradientStart: Colors.weather.clearNight[0],
+      gradientEnd: Colors.weather.clearNight[2],
     },
     cloudy: {
-      gradientStart: '#78909C',
-      gradientEnd: '#B0BEC5',
+      gradientStart: Colors.weather.cloudy[0],
+      gradientEnd: Colors.weather.cloudy[2],
     },
     rainy: {
-      gradientStart: '#455A64',
-      gradientEnd: '#607D8B',
+      gradientStart: Colors.weather.rainy[0],
+      gradientEnd: Colors.weather.rainy[2],
     },
     snowy: {
-      gradientStart: '#B0BEC5',
-      gradientEnd: '#ECEFF1',
+      gradientStart: Colors.weather.snowy[0],
+      gradientEnd: Colors.weather.snowy[2],
     },
     stormy: {
-      gradientStart: '#37474F',
-      gradientEnd: '#546E7A',
+      gradientStart: Colors.weather.stormy[0],
+      gradientEnd: Colors.weather.stormy[2],
     },
     foggy: {
-      gradientStart: '#90A4AE',
-      gradientEnd: '#CFD8DC',
+      gradientStart: Colors.weather.foggy[0],
+      gradientEnd: Colors.weather.foggy[2],
     },
   };
 
