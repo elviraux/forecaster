@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   ScrollView,
   TextInput,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
@@ -20,9 +21,10 @@ interface SettingsModalProps {
   visible: boolean;
   onClose: () => void;
   onSave: () => void;
+  onReset: () => void;
 }
 
-export function SettingsModal({ visible, onClose, onSave }: SettingsModalProps) {
+export function SettingsModal({ visible, onClose, onSave, onReset }: SettingsModalProps) {
   const [childAge, setChildAge] = useState('2');
   const [clothingStyle, setClothingStyle] = useState<ClothingStyle>('neutral');
   const [saving, setSaving] = useState(false);
@@ -70,6 +72,32 @@ export function SettingsModal({ visible, onClose, onSave }: SettingsModalProps) 
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleResetProfile = () => {
+    Alert.alert(
+      'Are you sure?',
+      "This will clear the current child's age and style. You will be returned to the welcome screen to set up a new profile.",
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Reset',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await PreferencesStorage.resetPreferences();
+              onClose();
+              onReset();
+            } catch (error) {
+              console.error('Error resetting profile:', error);
+            }
+          },
+        },
+      ]
+    );
   };
 
   return (
@@ -132,6 +160,14 @@ export function SettingsModal({ visible, onClose, onSave }: SettingsModalProps) 
                     accentColor={Colors.accents.neutral}
                   />
                 </View>
+
+                {/* Reset Profile Link */}
+                <TouchableOpacity
+                  style={styles.resetLink}
+                  onPress={handleResetProfile}
+                >
+                  <Text style={styles.resetLinkText}>Reset Child&apos;s Profile</Text>
+                </TouchableOpacity>
               </View>
 
               {/* Age Input */}
@@ -244,6 +280,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
+  },
+  resetLink: {
+    marginTop: 20,
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  resetLinkText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: Colors.status.error,
+    textDecorationLine: 'underline',
   },
   ageInputContainer: {
     flexDirection: 'row',

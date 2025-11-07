@@ -82,6 +82,14 @@ export default function Index() {
     }
   };
 
+  const handleProfileReset = async () => {
+    // Reset all state and show welcome screen
+    setPreferences(null);
+    setShowSetup(true);
+    setWeatherData(null);
+    setClothingAdvice(null);
+  };
+
   const loadWeatherAndAdvice = async () => {
     try {
       setLoading(true);
@@ -272,6 +280,7 @@ export default function Index() {
         visible={showSettings}
         onClose={() => setShowSettings(false)}
         onSave={handleSettingsSave}
+        onReset={handleProfileReset}
       />
     </View>
   );
