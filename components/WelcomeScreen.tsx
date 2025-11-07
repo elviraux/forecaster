@@ -60,9 +60,8 @@ export function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
       <View style={styles.content}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Personalize Your Suggestions</Text>
-          <Text style={styles.subtitle}>
-            Help us provide the best clothing recommendations for your child
+          <Text style={styles.heading}>
+            Picko — the AI that helps parents dress their little ones for the day
           </Text>
         </View>
 
@@ -207,19 +206,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
+  heading: {
+    fontSize: 24,
+    fontWeight: '600',
     color: '#fff',
-    marginBottom: 12,
     textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: 'rgba(255,255,255,0.9)',
-    textAlign: 'center',
-    lineHeight: 24,
-    paddingHorizontal: 20,
+    lineHeight: 34,
+    paddingHorizontal: 16,
+    letterSpacing: 0.3,
   },
   cardsContainer: {
     flexDirection: 'row',
