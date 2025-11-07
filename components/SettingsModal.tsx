@@ -231,7 +231,6 @@ const styles = StyleSheet.create({
   modalContent: {
     width: '100%',
     maxWidth: 420,
-    maxHeight: '80%',
     backgroundColor: '#fff',
     borderRadius: 24,
     padding: 24,
@@ -265,10 +264,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   scrollContainer: {
-    flex: 1,
+    maxHeight: 500,
   },
   scrollContent: {
-    paddingBottom: 8,
+    paddingBottom: 16,
+    flexGrow: 1,
   },
   section: {
     marginBottom: 28,
