@@ -140,6 +140,7 @@ export function SettingsModal({ visible, onClose, onSave, onReset }: SettingsMod
                     selected={clothingStyle === 'boy'}
                     onPress={() => setClothingStyle('boy')}
                     accentColor={Colors.accents.boy}
+                    variant="light"
                   />
 
                   <GlassStyleButton
@@ -149,6 +150,7 @@ export function SettingsModal({ visible, onClose, onSave, onReset }: SettingsMod
                     selected={clothingStyle === 'girl'}
                     onPress={() => setClothingStyle('girl')}
                     accentColor={Colors.accents.girl}
+                    variant="light"
                   />
 
                   <GlassStyleButton
@@ -158,6 +160,7 @@ export function SettingsModal({ visible, onClose, onSave, onReset }: SettingsMod
                     selected={clothingStyle === 'neutral'}
                     onPress={() => setClothingStyle('neutral')}
                     accentColor={Colors.accents.neutral}
+                    variant="light"
                   />
                 </View>
 

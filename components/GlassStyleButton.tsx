@@ -17,6 +17,7 @@ interface GlassStyleButtonProps {
   selected: boolean;
   onPress: () => void;
   accentColor: string;
+  variant?: 'light' | 'dark'; // light = on white bg, dark = on colored bg
 }
 
 export function GlassStyleButton({
@@ -26,7 +27,10 @@ export function GlassStyleButton({
   selected,
   onPress,
   accentColor,
+  variant = 'dark',
 }: GlassStyleButtonProps) {
+  const isLight = variant === 'light';
+
   return (
     <TouchableOpacity
       style={styles.container}
@@ -36,6 +40,7 @@ export function GlassStyleButton({
       <View
         style={[
           styles.glassContainer,
+          isLight && styles.glassContainerLight,
           selected && styles.glassContainerSelected,
           selected && { borderColor: accentColor, shadowColor: accentColor },
         ]}
@@ -61,7 +66,7 @@ export function GlassStyleButton({
         )}
       </View>
 
-      <Text style={styles.label}>{label}</Text>
+      <Text style={[styles.label, isLight && styles.labelLight]}>{label}</Text>
     </TouchableOpacity>
   );
 }
@@ -85,6 +90,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 5,
+  },
+  glassContainerLight: {
+    backgroundColor: 'rgba(135, 206, 235, 0.1)',
+    borderColor: 'rgba(135, 206, 235, 0.3)',
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
   },
   glassContainerSelected: {
     borderWidth: 3,
@@ -129,5 +140,9 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 3,
+  },
+  labelLight: {
+    color: '#333',
+    textShadowColor: 'transparent',
   },
 });
