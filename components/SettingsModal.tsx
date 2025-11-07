@@ -6,17 +6,13 @@ import {
   TouchableOpacity,
   Modal,
   ActivityIndicator,
-  Image,
-  Dimensions,
   ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { ClothingStyle } from '@/types/preferences';
 import { PreferencesStorage } from '@/services/preferencesStorage';
-
-const { width } = Dimensions.get('window');
-const CARD_SIZE = (width - 120) / 3;
+import { GlassStyleButton } from '@/components/GlassStyleButton';
 
 interface SettingsModalProps {
   visible: boolean;
@@ -109,81 +105,33 @@ export function SettingsModal({ visible, onClose, onSave }: SettingsModalProps) 
               {/* Style Selector */}
               <View style={styles.section}>
                 <Text style={styles.label}>Clothing Style</Text>
-                <View style={styles.cardsContainer}>
-                  <TouchableOpacity
-                    style={[
-                      styles.card,
-                      clothingStyle === 'boy' && styles.cardSelected,
-                    ]}
+                <View style={styles.styleButtonsContainer}>
+                  <GlassStyleButton
+                    style="boy"
+                    label="Boy"
+                    imageSource={require('@/assets/face-avatars/boy.png')}
+                    selected={clothingStyle === 'boy'}
                     onPress={() => setClothingStyle('boy')}
-                    activeOpacity={0.8}
-                  >
-                    <View style={styles.cardImageContainer}>
-                      <Image
-                        source={require('@/assets/style-cards/boy.png')}
-                        style={styles.cardImage}
-                        resizeMode="cover"
-                      />
-                    </View>
-                    <View style={styles.cardLabelContainer}>
-                      <Text style={styles.cardLabel}>Boy</Text>
-                    </View>
-                    {clothingStyle === 'boy' && (
-                      <View style={styles.checkmark}>
-                        <Ionicons name="checkmark-circle" size={22} color="#667eea" />
-                      </View>
-                    )}
-                  </TouchableOpacity>
+                    accentColor="#667eea"
+                  />
 
-                  <TouchableOpacity
-                    style={[
-                      styles.card,
-                      clothingStyle === 'girl' && styles.cardSelected,
-                    ]}
+                  <GlassStyleButton
+                    style="girl"
+                    label="Girl"
+                    imageSource={require('@/assets/face-avatars/girl.png')}
+                    selected={clothingStyle === 'girl'}
                     onPress={() => setClothingStyle('girl')}
-                    activeOpacity={0.8}
-                  >
-                    <View style={styles.cardImageContainer}>
-                      <Image
-                        source={require('@/assets/style-cards/girl.png')}
-                        style={styles.cardImage}
-                        resizeMode="cover"
-                      />
-                    </View>
-                    <View style={styles.cardLabelContainer}>
-                      <Text style={styles.cardLabel}>Girl</Text>
-                    </View>
-                    {clothingStyle === 'girl' && (
-                      <View style={styles.checkmark}>
-                        <Ionicons name="checkmark-circle" size={22} color="#f093fb" />
-                      </View>
-                    )}
-                  </TouchableOpacity>
+                    accentColor="#f093fb"
+                  />
 
-                  <TouchableOpacity
-                    style={[
-                      styles.card,
-                      clothingStyle === 'neutral' && styles.cardSelected,
-                    ]}
+                  <GlassStyleButton
+                    style="neutral"
+                    label="Neutral"
+                    imageSource={require('@/assets/face-avatars/neutral.png')}
+                    selected={clothingStyle === 'neutral'}
                     onPress={() => setClothingStyle('neutral')}
-                    activeOpacity={0.8}
-                  >
-                    <View style={styles.cardImageContainer}>
-                      <Image
-                        source={require('@/assets/style-cards/neutral.png')}
-                        style={styles.cardImage}
-                        resizeMode="cover"
-                      />
-                    </View>
-                    <View style={styles.cardLabelContainer}>
-                      <Text style={styles.cardLabel}>Neutral</Text>
-                    </View>
-                    {clothingStyle === 'neutral' && (
-                      <View style={styles.checkmark}>
-                        <Ionicons name="checkmark-circle" size={22} color="#764ba2" />
-                      </View>
-                    )}
-                  </TouchableOpacity>
+                    accentColor="#fbbf24"
+                  />
                 </View>
               </View>
 
@@ -267,7 +215,7 @@ const styles = StyleSheet.create({
   modalContent: {
     width: '100%',
     maxWidth: 420,
-    maxHeight: '85%',
+    maxHeight: '80%',
     backgroundColor: '#fff',
     borderRadius: 24,
     padding: 24,
@@ -307,65 +255,18 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   section: {
-    marginBottom: 24,
+    marginBottom: 28,
   },
   label: {
     fontSize: 16,
     fontWeight: '600',
     color: '#333',
-    marginBottom: 16,
+    marginBottom: 20,
   },
-  cardsContainer: {
+  styleButtonsContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  card: {
-    width: CARD_SIZE,
-    aspectRatio: 0.8,
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
-    borderWidth: 2,
-    borderColor: '#e0e0e0',
-  },
-  cardSelected: {
-    borderColor: '#667eea',
-    borderWidth: 3,
-  },
-  cardImageContainer: {
-    flex: 1,
-    backgroundColor: '#fafafa',
-  },
-  cardImage: {
-    width: '100%',
-    height: '100%',
-  },
-  cardLabelContainer: {
-    backgroundColor: '#fff',
-    paddingVertical: 8,
+    justifyContent: 'space-around',
     alignItems: 'center',
-  },
-  cardLabel: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#333',
-  },
-  checkmark: {
-    position: 'absolute',
-    top: 6,
-    right: 6,
-    backgroundColor: '#fff',
-    borderRadius: 11,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 2,
   },
   ageContainer: {
     flexDirection: 'row',
@@ -403,7 +304,7 @@ const styles = StyleSheet.create({
   actions: {
     flexDirection: 'row',
     gap: 12,
-    marginTop: 8,
+    marginTop: 12,
   },
   cancelButton: {
     flex: 1,
