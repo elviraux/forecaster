@@ -110,7 +110,7 @@ export function WelcomeScreen({ onComplete }: WelcomeScreenProps) {
             keyboardType="number-pad"
             maxLength={2}
             placeholder="2"
-            placeholderTextColor="rgba(255,255,255,0.5)"
+            placeholderTextColor={Colors.text.secondary}
             returnKeyType="done"
           />
           <Text style={styles.ageUnit}>years old</Text>
@@ -187,54 +187,45 @@ const styles = StyleSheet.create({
   ageLabel: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#fff',
+    color: Colors.text.secondary,
     marginBottom: 12,
     letterSpacing: 0.5,
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
+    ...Colors.textShadows.medium,
   },
   ageInput: {
-    backgroundColor: 'rgba(255,255,255,0.4)',
+    backgroundColor: Colors.backgrounds.white,
     borderRadius: 12,
     paddingVertical: 14,
     paddingHorizontal: 24,
     fontSize: 32,
     fontWeight: '600',
-    color: '#fff',
+    color: Colors.text.input,
     textAlign: 'center',
     minWidth: 80,
     borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.6)',
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
+    borderColor: Colors.ui.border,
   },
   ageUnit: {
     fontSize: 15,
     fontWeight: '500',
-    color: '#fff',
+    color: Colors.text.secondary,
     marginTop: 10,
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
+    ...Colors.textShadows.medium,
   },
   doneButton: {
-    backgroundColor: Colors.sky.main,
+    backgroundColor: Colors.buttons.primary,
     borderRadius: 16,
     paddingVertical: 18,
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: Colors.sky.medium,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
   doneButtonText: {
     fontSize: 18,
     fontWeight: '700',
-    color: Colors.text.inverse,
+    color: Colors.buttons.primaryText,
   },
 });

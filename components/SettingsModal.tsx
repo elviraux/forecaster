@@ -121,7 +121,7 @@ export function SettingsModal({ visible, onClose, onSave, onReset }: SettingsMod
 
           {loading ? (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={Colors.sky.main} />
+              <ActivityIndicator size="large" color={Colors.buttons.primary} />
             </View>
           ) : (
             <ScrollView
@@ -184,7 +184,7 @@ export function SettingsModal({ visible, onClose, onSave, onReset }: SettingsMod
                     keyboardType="number-pad"
                     maxLength={2}
                     placeholder="2"
-                    placeholderTextColor="#ccc"
+                    placeholderTextColor={Colors.text.secondary}
                     returnKeyType="done"
                   />
                   <Text style={styles.ageUnit}>years old</Text>
@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
   modalContent: {
     width: '100%',
     maxWidth: 420,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.ui.surfaceLight,
     borderRadius: 24,
     padding: 24,
     shadowColor: '#000',
@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#333',
+    color: Colors.text.primary,
   },
   closeButton: {
     width: 36,
@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: Colors.text.primary,
     marginBottom: 20,
   },
   styleButtonsContainer: {
@@ -306,13 +306,13 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   ageInput: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.backgrounds.white,
     borderRadius: 10,
     paddingVertical: 12,
     paddingHorizontal: 20,
     fontSize: 24,
     fontWeight: '600',
-    color: Colors.sky.main,
+    color: Colors.text.input,
     textAlign: 'center',
     minWidth: 70,
     borderWidth: 2,
@@ -326,7 +326,7 @@ const styles = StyleSheet.create({
   ageUnit: {
     fontSize: 15,
     fontWeight: '500',
-    color: '#666',
+    color: Colors.text.secondary,
   },
   actions: {
     flexDirection: 'row',
@@ -347,7 +347,7 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     flex: 1,
-    backgroundColor: Colors.sky.main,
+    backgroundColor: Colors.buttons.primary,
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
@@ -355,6 +355,6 @@ const styles = StyleSheet.create({
   saveButtonText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#fff',
+    color: Colors.buttons.primaryText,
   },
 });

@@ -178,12 +178,15 @@ export default function Index() {
   if (error || !weatherData) {
     return (
       <View style={styles.errorContainer}>
-        <AnimatedBackground condition="cloudy" />
-        <Ionicons name="alert-circle-outline" size={64} color="#fff" />
-        <Text style={styles.errorTitle}>Unable to Load Weather</Text>
-        <Text style={styles.errorMessage}>
-          {error || 'Please check your internet connection and location permissions.'}
-        </Text>
+        <View style={styles.errorBanner}>
+          <Ionicons name="alert-circle-outline" size={32} color={Colors.text.inverse} />
+          <View style={styles.errorTextContainer}>
+            <Text style={styles.errorTitle}>Unable to Load Weather</Text>
+            <Text style={styles.errorMessage}>
+              {error || 'Please check your internet connection and location permissions.'}
+            </Text>
+          </View>
+        </View>
       </View>
     );
   }
@@ -324,21 +327,35 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 32,
+    backgroundColor: Colors.ui.background,
+  },
+  errorBanner: {
+    backgroundColor: Colors.status.error,
+    borderRadius: 16,
+    padding: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    maxWidth: '100%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  errorTextContainer: {
+    flex: 1,
+    marginLeft: 16,
   },
   errorTitle: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: '700',
     color: Colors.text.inverse,
-    marginTop: 16,
-    marginBottom: 8,
-    ...Colors.textShadows.medium,
+    marginBottom: 4,
   },
   errorMessage: {
-    fontSize: 16,
+    fontSize: 14,
     color: Colors.text.inverse,
-    textAlign: 'center',
-    lineHeight: 24,
-    ...Colors.textShadows.subtle,
+    lineHeight: 20,
   },
   content: {
     flex: 1,
@@ -365,7 +382,7 @@ const styles = StyleSheet.create({
   },
   currentTemp: {
     fontSize: 72,
-    color: Colors.text.onAnimatedBg,
+    color: Colors.text.temperature,
     fontWeight: '200',
     marginTop: 4,
     marginBottom: 2,
@@ -374,7 +391,7 @@ const styles = StyleSheet.create({
   },
   currentDescription: {
     fontSize: 20,
-    color: Colors.text.onAnimatedBg,
+    color: Colors.text.weatherInfo,
     fontWeight: '600',
     marginBottom: 16,
     ...Colors.textShadows.medium,
