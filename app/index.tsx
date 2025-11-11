@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
   StyleSheet,
   View,
@@ -7,6 +7,7 @@ import {
   StatusBar,
   Dimensions,
   TouchableOpacity,
+  Animated,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,9 +15,11 @@ import { AnimatedBackground, getWeatherCondition } from '@/components/AnimatedBa
 import { ClothingAdvice } from '@/components/ClothingAdvice';
 import { WelcomeScreen } from '@/components/WelcomeScreen';
 import { SettingsModal } from '@/components/SettingsModal';
+import { DaySelector, DayOption } from '@/components/DaySelector';
 import { WeatherService } from '@/services/weatherService';
 import { NewellService } from '@/services/newellService';
 import { PreferencesStorage } from '@/services/preferencesStorage';
+import { RecommendationCache } from '@/services/recommendationCache';
 import { WeatherData } from '@/types/weather';
 import { ClothingRecommendationStructured } from '@/types/newell';
 import { UserPreferences } from '@/types/preferences';
@@ -28,8 +31,18 @@ export default function Index() {
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [clothingAdvice, setClothingAdvice] = useState<ClothingRecommendationStructured | null>(null);
-  const [adviceLoading, setAdviceLoading] = useState(false);
+
+  // Day selection state
+  const [selectedDay, setSelectedDay] = useState<DayOption>('tomorrow');
+
+  // Separate states for today and tomorrow recommendations
+  const [todayAdvice, setTodayAdvice] = useState<ClothingRecommendationStructured | null>(null);
+  const [tomorrowAdvice, setTomorrowAdvice] = useState<ClothingRecommendationStructured | null>(null);
+  const [todayLoading, setTodayLoading] = useState(false);
+  const [tomorrowLoading, setTomorrowLoading] = useState(false);
+
+  // Animation for fade transition
+  const fadeAnim = useRef(new Animated.Value(1)).current;
 
   // Personalization state
   const [preferences, setPreferences] = useState<UserPreferences | null>(null);
@@ -79,7 +92,9 @@ export default function Index() {
     setPreferences(prefs);
     // Reload AI advice with new preferences
     if (weatherData) {
-      loadClothingAdvice(weatherData);
+      // Clear cache and reload both recommendations
+      await RecommendationCache.clearAll();
+      await loadBothRecommendations(weatherData);
     }
   };
 
@@ -88,7 +103,41 @@ export default function Index() {
     setPreferences(null);
     setShowSetup(true);
     setWeatherData(null);
-    setClothingAdvice(null);
+    setTodayAdvice(null);
+    setTomorrowAdvice(null);
+    // Clear recommendation cache
+    await RecommendationCache.clearAll();
+  };
+
+  // Handle day selection with fade animation
+  const handleDaySelect = (day: DayOption) => {
+    if (day === selectedDay) return;
+
+    // Fade out
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 150,
+      useNativeDriver: true,
+    }).start(() => {
+      // Switch day
+      setSelectedDay(day);
+
+      // Load recommendation for selected day if not already loaded
+      if (weatherData) {
+        if (day === 'today' && !todayAdvice && !todayLoading) {
+          loadTodayRecommendation(weatherData);
+        } else if (day === 'tomorrow' && !tomorrowAdvice && !tomorrowLoading) {
+          loadTomorrowRecommendation(weatherData);
+        }
+      }
+
+      // Fade in
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 150,
+        useNativeDriver: true,
+      }).start();
+    });
   };
 
   const loadWeatherAndAdvice = async () => {
@@ -110,8 +159,8 @@ export default function Index() {
 
       setWeatherData(weather);
 
-      // Auto-load AI clothing advice
-      loadClothingAdvice(weather);
+      // Load both today and tomorrow recommendations
+      await loadBothRecommendations(weather);
     } catch (err) {
       console.error('Error loading weather:', err);
       setError(err instanceof Error ? err.message : 'Failed to load weather data');
@@ -120,9 +169,62 @@ export default function Index() {
     }
   };
 
-  const loadClothingAdvice = async (weather: WeatherData) => {
+  const loadBothRecommendations = async (weather: WeatherData) => {
+    // Load both in parallel
+    await Promise.all([
+      loadTodayRecommendation(weather),
+      loadTomorrowRecommendation(weather),
+    ]);
+  };
+
+  const loadTodayRecommendation = async (weather: WeatherData) => {
     try {
-      setAdviceLoading(true);
+      // Check cache first
+      const cached = await RecommendationCache.getTodayRecommendation();
+      if (cached) {
+        console.log('Using cached today recommendation');
+        setTodayAdvice(cached);
+        return;
+      }
+
+      setTodayLoading(true);
+
+      // Use user preferences for personalized recommendations
+      const childAge = preferences?.childAge || 2;
+      const clothingStyle = preferences?.clothingStyle || 'neutral';
+
+      const recommendation = await NewellService.generateTodayClothingRecommendation(
+        weather,
+        childAge,
+        clothingStyle
+      );
+      setTodayAdvice(recommendation);
+
+      // Cache the recommendation
+      await RecommendationCache.setTodayRecommendation(recommendation);
+    } catch (err) {
+      console.error('Error getting today AI recommendation:', err);
+      // Provide fallback structured recommendation
+      setTodayAdvice({
+        summary: 'A comfortable outfit with layers is always a good choice!',
+        clothing_items: ['shirt', 'pants', 'light-jacket'],
+      });
+    } finally {
+      setTodayLoading(false);
+    }
+  };
+
+  const loadTomorrowRecommendation = async (weather: WeatherData) => {
+    try {
+      // Check cache first
+      const cached = await RecommendationCache.getTomorrowRecommendation();
+      if (cached) {
+        console.log('Using cached tomorrow recommendation');
+        setTomorrowAdvice(cached);
+        return;
+      }
+
+      setTomorrowLoading(true);
 
       // Use user preferences for personalized recommendations
       const childAge = preferences?.childAge || 2;
@@ -133,16 +235,19 @@ export default function Index() {
         childAge,
         clothingStyle
       );
-      setClothingAdvice(recommendation);
+      setTomorrowAdvice(recommendation);
+
+      // Cache the recommendation
+      await RecommendationCache.setTomorrowRecommendation(recommendation);
     } catch (err) {
-      console.error('Error getting AI recommendation:', err);
+      console.error('Error getting tomorrow AI recommendation:', err);
       // Provide fallback structured recommendation
-      setClothingAdvice({
+      setTomorrowAdvice({
         summary: 'A comfortable outfit with layers is always a good choice!',
         clothing_items: ['shirt', 'pants', 'light-jacket'],
       });
     } finally {
-      setAdviceLoading(false);
+      setTomorrowLoading(false);
     }
   };
 
@@ -257,25 +362,51 @@ export default function Index() {
         {/* Divider Line */}
         <View style={styles.divider} />
 
-        {/* Tomorrow's Clothing Advice - Bottom Section */}
+        {/* Clothing Advice Section with Day Selector */}
         <View style={styles.adviceSection}>
-          <Text style={styles.adviceTitle}>Tomorrow&apos;s Outfit</Text>
+          {/* Day Selector */}
+          <DaySelector selectedDay={selectedDay} onSelectDay={handleDaySelect} />
 
-          {clothingAdvice ? (
-            <ClothingAdvice
-              recommendation={clothingAdvice}
-              tomorrowWeather={weatherData.tomorrow}
-              clothingStyle={preferences?.clothingStyle || 'neutral'}
-              compact={true}
-            />
-          ) : adviceLoading ? (
-            <View style={styles.adviceLoading}>
-              <ActivityIndicator size="large" color="#fff" />
-              <Text style={styles.adviceLoadingText}>
-                Getting recommendations...
-              </Text>
-            </View>
-          ) : null}
+          {/* Clothing Recommendations with Fade Animation */}
+          <Animated.View style={[styles.recommendationContainer, { opacity: fadeAnim }]}>
+            {selectedDay === 'today' ? (
+              <>
+                {todayAdvice ? (
+                  <ClothingAdvice
+                    recommendation={todayAdvice}
+                    tomorrowWeather={weatherData.tomorrow}
+                    clothingStyle={preferences?.clothingStyle || 'neutral'}
+                    compact={true}
+                  />
+                ) : todayLoading ? (
+                  <View style={styles.adviceLoading}>
+                    <ActivityIndicator size="large" color="#fff" />
+                    <Text style={styles.adviceLoadingText}>
+                      Getting recommendations...
+                    </Text>
+                  </View>
+                ) : null}
+              </>
+            ) : (
+              <>
+                {tomorrowAdvice ? (
+                  <ClothingAdvice
+                    recommendation={tomorrowAdvice}
+                    tomorrowWeather={weatherData.tomorrow}
+                    clothingStyle={preferences?.clothingStyle || 'neutral'}
+                    compact={true}
+                  />
+                ) : tomorrowLoading ? (
+                  <View style={styles.adviceLoading}>
+                    <ActivityIndicator size="large" color="#fff" />
+                    <Text style={styles.adviceLoadingText}>
+                      Getting recommendations...
+                    </Text>
+                  </View>
+                ) : null}
+              </>
+            )}
+          </Animated.View>
         </View>
       </View>
 
@@ -431,14 +562,8 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-start',
   },
-  adviceTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: Colors.text.onAnimatedBg,
-    marginBottom: 16,
-    textAlign: 'center',
-    letterSpacing: 0.5,
-    ...Colors.textShadows.medium,
+  recommendationContainer: {
+    flex: 1,
   },
   adviceLoading: {
     alignItems: 'center',

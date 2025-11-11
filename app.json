@@ -22,8 +22,11 @@
       "edgeToEdgeEnabled": true,
       "permissions": [
         "ACCESS_COARSE_LOCATION",
-        "ACCESS_FINE_LOCATION"
-      ]
+        "ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ],
+      "package": "com.elviraux.picko"
     },
     "web": {
       "bundler": "metro",
@@ -50,6 +53,13 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "203dd0ac-cdd4-4625-85b3-12600d4cbd61"
+      }
+    },
+    "owner": "elviraux"
   }
 }
